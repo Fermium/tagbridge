@@ -8,13 +8,13 @@
  * "order completed" event (which may fire from the admin) still resolves to the
  * same person as the checkout session.
  *
- * @package Tagbridge\Platform
+ * @package Tagbridge\Modules\PostHog
  */
 
-namespace Tagbridge\Platform\Listeners;
+namespace Tagbridge\Modules\PostHog\Listeners;
 
-use Tagbridge\Platform\Events\Dispatcher;
-use Tagbridge\Platform\Identity\Identity;
+use Tagbridge\Modules\PostHog\Events\Dispatcher;
+use Tagbridge\Modules\PostHog\Identity;
 
 /**
  * Listens for WooCommerce commerce events.

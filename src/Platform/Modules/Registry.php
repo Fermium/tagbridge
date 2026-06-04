@@ -75,7 +75,7 @@ final class Registry {
 			return null;
 		}
 		if ( ! isset( $this->instances[ $id ] ) ) {
-			$class                    = $this->manifest[ $id ]['class'];
+			$class                  = $this->manifest[ $id ]['class'];
 			$this->instances[ $id ] = new $class();
 		}
 		return $this->instances[ $id ];

@@ -12,14 +12,14 @@
  * control/status, and settings rows (label left, control right).
  */
 
-/* Bundled wordmark/heading face: Quicksand (SIL OFL 1.1), shipped locally so we
-   never call a third-party font CDN at runtime. Variable woff2 covers 500-700. */
+/* Bundled wordmark/heading face: Sora (SIL OFL 1.1), shipped locally so we
+   never call a third-party font CDN at runtime. Variable woff2 covers 600-700. */
 @font-face {
-	font-family: "Tagbridge Quicksand";
+	font-family: "Tagbridge Sora";
 	font-style: normal;
-	font-weight: 500 700;
+	font-weight: 600 700;
 	font-display: swap;
-	src: url("../fonts/quicksand-latin.woff2") format("woff2");
+	src: url("../fonts/sora-latin.woff2") format("woff2");
 }
 
 .tagbridge-wrap {
@@ -41,9 +41,9 @@
 	--hp-error: #c0392b;
 	--hp-error-soft: #fbecea;
 
-	/* Type tokens. Heading face is the bundled Quicksand, with a rounded
+	/* Type tokens. Heading face is the bundled Sora, with a rounded
 	   geometric system fallback while the woff2 loads. */
-	--hp-font-title: "Tagbridge Quicksand", ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", Quicksand, Nunito, "Segoe UI", system-ui, sans-serif;
+	--hp-font-title: "Tagbridge Sora", ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", Quicksand, Nunito, "Segoe UI", system-ui, sans-serif;
 	--hp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
 	/* Shape + motion tokens. */
@@ -489,6 +489,81 @@
 .tagbridge-actionbar__note {
 	font-size: 12px;
 	color: var(--hp-ink-faint);
+}
+
+/* ---- Integration module (one card per integration in the shell) ---- */
+.tagbridge-module {
+	background: var(--hp-canvas);
+	border: 1px solid var(--hp-border);
+	border-radius: var(--hp-radius);
+	box-shadow: var(--hp-shadow-card);
+	margin: 0 0 20px;
+	overflow: hidden;
+}
+
+.tagbridge-module__head {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 18px 24px;
+	border-bottom: 1px solid var(--hp-border);
+	background: var(--hp-canvas-soft);
+}
+
+.tagbridge-module__icon.dashicons {
+	flex: 0 0 auto;
+	width: 28px;
+	height: 28px;
+	font-size: 28px;
+	line-height: 1;
+	color: var(--hp-ink);
+}
+
+.tagbridge-module__titles {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.tagbridge-module__name {
+	font-family: var(--hp-font-title);
+	font-weight: 700;
+	font-size: 18px;
+	line-height: 1.2;
+	color: var(--hp-ink);
+}
+
+.tagbridge-module__desc {
+	margin-top: 2px;
+	font-size: 13px;
+	color: var(--hp-ink-soft);
+}
+
+.tagbridge-module__toggle {
+	flex: 0 0 auto;
+}
+
+.tagbridge-module__body {
+	padding: 20px 24px 8px;
+}
+
+/* When the integration is off, dim and disable its settings body. */
+.tagbridge-module.is-disabled .tagbridge-module__body {
+	opacity: 0.45;
+}
+
+.tagbridge-module.is-disabled .tagbridge-module__body .tagbridge-tab,
+.tagbridge-module.is-disabled .tagbridge-module__body .tagbridge-row,
+.tagbridge-module.is-disabled .tagbridge-module__body input,
+.tagbridge-module.is-disabled .tagbridge-module__body select {
+	pointer-events: none;
+}
+
+/* The settings cards inside a module body have no outer border (the module
+   wrapper already provides one), so they read as nested sections. */
+.tagbridge-module__body .tagbridge-card {
+	border-color: var(--hp-border);
 }
 
 /* ---- Responsive ---- */

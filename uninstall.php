@@ -19,7 +19,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * @return void
  */
 function tagbridge_uninstall_cleanup_site() {
-	delete_option( 'tagbridge_settings' );
+	delete_option( 'tagbridge' );
 
 	// Remove the per-user "setup notice dismissed" flag for every user.
 	delete_metadata( 'user', 0, 'tagbridge_setup_notice_dismissed', '', true );

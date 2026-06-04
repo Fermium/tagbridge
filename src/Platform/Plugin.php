@@ -7,19 +7,17 @@
 
 namespace Tagbridge\Platform;
 
+use Tagbridge\Modules\PostHog\Module as PostHogModule;
 use Tagbridge\Platform\Admin\Notices;
 use Tagbridge\Platform\Admin\SettingsPage;
-use Tagbridge\Platform\Events\Dispatcher;
-use Tagbridge\Platform\Frontend\Enqueue;
-use Tagbridge\Platform\Listeners\CoreEvents;
-use Tagbridge\Platform\Listeners\WooEvents;
+use Tagbridge\Platform\Modules\Registry;
 
 /**
  * Wires the plugin together on init.
  *
- * This is the WordPress glue entry point. It is intentionally thin: it registers
- * the settings, admin UI, and front-end injection. All business logic lives in
- * the platform-agnostic Core.
+ * Intentionally thin: it builds the module registry, registers the admin shell
+ * and notices, and boots only the integration modules the site owner enabled.
+ * A disabled module's runtime classes are never loaded.
  */
 final class Plugin {
 
@@ -36,6 +34,13 @@ final class Plugin {
 	 * @var bool
 	 */
 	private $booted = false;
+
+	/**
+	 * The module registry.
+	 *
+	 * @var Registry|null
+	 */
+	private $registry = null;
 
 	/**
 	 * Get the shared instance.
@@ -55,6 +60,43 @@ final class Plugin {
 	private function __construct() {}
 
 	/**
+	 * The integration module manifest: id => { class, default-enabled }.
+	 *
+	 * This is the one place new integrations are registered. Only the class name
+	 * is referenced here, so the autoloader never touches a module's files until
+	 * the registry instantiates it (and it only does that when enabled).
+	 *
+	 * @return array<string,array{class:string,default:bool}>
+	 */
+	private function manifest() {
+		$manifest = array(
+			PostHogModule::ID => array(
+				'class'   => PostHogModule::class,
+				'default' => true,
+			),
+		);
+
+		/**
+		 * Filter the integration module manifest.
+		 *
+		 * @param array<string,array{class:string,default:bool}> $manifest Module manifest.
+		 */
+		return (array) apply_filters( 'tagbridge_module_manifest', $manifest );
+	}
+
+	/**
+	 * The module registry, built once per request.
+	 *
+	 * @return Registry
+	 */
+	public function registry() {
+		if ( null === $this->registry ) {
+			$this->registry = new Registry( $this->manifest() );
+		}
+		return $this->registry;
+	}
+
+	/**
 	 * Initialise the plugin. Runs on plugins_loaded.
 	 *
 	 * @return void
@@ -65,19 +107,14 @@ final class Plugin {
 		}
 		$this->booted = true;
 
-		// Translations for WordPress.org-hosted plugins are loaded automatically.
+		$registry = $this->registry();
 
-		// Admin UI.
-		( new SettingsPage() )->register();
-		( new Notices() )->register();
+		// Admin UI (always available so modules can be configured and toggled).
+		( new SettingsPage( $registry ) )->register();
+		( new Notices( $registry ) )->register();
 
-		// Front-end posthog-js injection.
-		( new Enqueue() )->register();
-
-		// Server-side event capture (core + WooCommerce when active).
-		$dispatcher = new Dispatcher();
-		( new CoreEvents( $dispatcher ) )->register();
-		( new WooEvents( $dispatcher ) )->register();
+		// Boot only the enabled integration modules.
+		$registry->boot_enabled();
 	}
 
 	/**

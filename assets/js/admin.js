@@ -2,6 +2,7 @@
  * Tagbridge admin script.
  *
  * Dependency-free progressive enhancement:
+ *  - enable/disable a whole integration module from its header switch;
  *  - switch between settings tabs (one panel visible at a time);
  *  - show the custom host field only when "self-hosted" is selected;
  *  - dim a section's dependent rows when its master switch is off.
@@ -9,67 +10,94 @@
 ( function () {
 	'use strict';
 
-	function initTabs() {
-		var tablist = document.querySelector( '.tagbridge-tabs' );
-		if ( ! tablist ) {
-			return;
-		}
+	function initModules() {
+		var modules = document.querySelectorAll( '[data-tagbridge-module]' );
 
-		var tabs = Array.prototype.slice.call(
-			tablist.querySelectorAll( '[role="tab"]' )
-		);
-		if ( ! tabs.length ) {
-			return;
-		}
-
-		function select( tab, setFocus ) {
-			tabs.forEach( function ( other ) {
-				var selected = other === tab;
-				other.setAttribute( 'aria-selected', selected ? 'true' : 'false' );
-				other.setAttribute( 'tabindex', selected ? '0' : '-1' );
-				other.classList.toggle( 'is-active', selected );
-
-				var panel = document.getElementById(
-					other.getAttribute( 'aria-controls' )
-				);
-				if ( panel ) {
-					panel.hidden = ! selected;
-					panel.classList.toggle( 'is-active', selected );
-				}
-			} );
-
-			if ( setFocus ) {
-				tab.focus();
+		Array.prototype.forEach.call( modules, function ( module ) {
+			var toggle = module.querySelector(
+				'.tagbridge-module__toggle input[type="checkbox"]'
+			);
+			if ( ! toggle ) {
+				return;
 			}
-		}
 
-		tabs.forEach( function ( tab, index ) {
-			tab.addEventListener( 'click', function () {
-				select( tab, false );
-			} );
+			function sync() {
+				module.classList.toggle( 'is-disabled', ! toggle.checked );
+			}
 
-			tab.addEventListener( 'keydown', function ( event ) {
-				var next;
-				switch ( event.key ) {
-					case 'ArrowRight':
-					case 'ArrowDown':
-						next = tabs[ ( index + 1 ) % tabs.length ];
-						break;
-					case 'ArrowLeft':
-					case 'ArrowUp':
-						next = tabs[ ( index - 1 + tabs.length ) % tabs.length ];
-						break;
-					case 'Home':
-						next = tabs[ 0 ];
-						break;
-					case 'End':
-						next = tabs[ tabs.length - 1 ];
-						break;
-					default:
-						return;
+			toggle.addEventListener( 'change', sync );
+			sync();
+		} );
+	}
+
+	function initTabs() {
+		var tablists = document.querySelectorAll( '.tagbridge-tabs' );
+
+		Array.prototype.forEach.call( tablists, function ( tablist ) {
+			var tabs = Array.prototype.slice.call(
+				tablist.querySelectorAll( '[role="tab"]' )
+			);
+			if ( ! tabs.length ) {
+				return;
+			}
+
+			// Scope panels to the module this tablist belongs to, so multiple
+			// modules on one page do not toggle each other's panels.
+			var scope = tablist.closest( '[data-tagbridge-module]' ) || document;
+
+			function panelFor( tab ) {
+				return scope.querySelector(
+					'#' + tab.getAttribute( 'aria-controls' )
+				);
+			}
+
+			function select( tab, setFocus ) {
+				tabs.forEach( function ( other ) {
+					var selected = other === tab;
+					other.setAttribute( 'aria-selected', selected ? 'true' : 'false' );
+					other.setAttribute( 'tabindex', selected ? '0' : '-1' );
+					other.classList.toggle( 'is-active', selected );
+
+					var panel = panelFor( other );
+					if ( panel ) {
+						panel.hidden = ! selected;
+						panel.classList.toggle( 'is-active', selected );
+					}
+				} );
+
+				if ( setFocus ) {
+					tab.focus();
 				}
-				event.preventDefault();
-				select( next, true );
+			}
+
+			tabs.forEach( function ( tab, index ) {
+				tab.addEventListener( 'click', function () {
+					select( tab, false );
+				} );
+
+				tab.addEventListener( 'keydown', function ( event ) {
+					var next;
+					switch ( event.key ) {
+						case 'ArrowRight':
+						case 'ArrowDown':
+							next = tabs[ ( index + 1 ) % tabs.length ];
+							break;
+						case 'ArrowLeft':
+						case 'ArrowUp':
+							next = tabs[ ( index - 1 + tabs.length ) % tabs.length ];
+							break;
+						case 'Home':
+							next = tabs[ 0 ];
+							break;
+						case 'End':
+							next = tabs[ tabs.length - 1 ];
+							break;
+						default:
+							return;
+					}
+					event.preventDefault();
+					select( next, true );
+				} );
 			} );
 		} );
 	}
@@ -112,6 +140,7 @@
 	}
 
 	function init() {
+		initModules();
 		initTabs();
 		initRegion();
 		initMasters();

@@ -65,15 +65,15 @@ final class Options {
 	 * site owner has never toggled it.
 	 *
 	 * @param string $id      Module id.
-	 * @param bool   $default Default enabled state for this module.
+	 * @param bool   $fallback Default enabled state when never toggled.
 	 * @return bool
 	 */
-	public static function is_module_enabled( $id, $default = false ) {
+	public static function is_module_enabled( $id, $fallback = false ) {
 		$all = self::all();
 		if ( isset( $all['modules'] ) && is_array( $all['modules'] ) && array_key_exists( $id, $all['modules'] ) ) {
 			return (bool) $all['modules'][ $id ];
 		}
-		return (bool) $default;
+		return (bool) $fallback;
 	}
 
 	/**
