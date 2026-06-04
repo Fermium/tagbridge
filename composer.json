@@ -1,0 +1,50 @@
+{
+	"name": "greatanthony/tagbridge",
+	"description": "Tagbridge: an independent PostHog integration for WordPress.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"wordpress",
+		"posthog",
+		"analytics",
+		"woocommerce"
+	],
+	"require": {
+		"php": ">=8.2",
+		"posthog/posthog-php": "^4.4"
+	},
+	"require-dev": {
+		"squizlabs/php_codesniffer": "^3.9",
+		"wp-coding-standards/wpcs": "^3.1",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpunit/phpunit": "^11.5",
+		"yoast/phpunit-polyfills": "^3.0",
+		"brain/monkey": "^2.6"
+	},
+	"autoload": {
+		"psr-4": {
+			"Tagbridge\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Tagbridge\\Tests\\": "tests/phpunit/"
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"platform": {
+			"php": "8.2.0"
+		},
+		"sort-packages": true
+	},
+	"scripts": {
+		"lint": "phpcs",
+		"lint:fix": "phpcbf",
+		"test": "phpunit",
+		"test:unit": "phpunit --testsuite unit"
+	}
+}

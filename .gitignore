@@ -1,0 +1,35 @@
+# Dependencies
+/node_modules/
+
+# Build output
+/build/
+/blocks/*/build/
+/assets/js/build/
+
+# PHPUnit
+/.phpunit.cache/
+/.phpunit.result.cache
+/clover.xml
+/coverage/
+
+# PHPCS
+/.phpcs.cache
+
+# wp-env / local
+/.wp-env.override.json
+
+# Local build output and verification artifacts
+/dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+/.idea/
+/.vscode/
+
+# Composer: vendor/ is NOT committed (it would include heavy dev tooling).
+# composer.lock IS committed for reproducible installs. The distribution ZIP is
+# built with `composer install --no-dev` so the shipped plugin vendors
+# posthog-php and needs no Composer step at runtime.
+/vendor/

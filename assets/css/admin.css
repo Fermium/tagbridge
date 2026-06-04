@@ -1,0 +1,519 @@
+/**
+ * Tagbridge admin styles.
+ *
+ * Refined, restrained product UI for wp-admin (per docs/05_DESIGN.md): warm
+ * cream and olive-ink neutrals, a single yellow-orange action, honest status
+ * colors, a characterful rounded-display face for headings with the system font
+ * for body, hairline borders, small radii, minimal shadow, no gradients.
+ *
+ * Tokens are defined once as custom properties and never hardcoded inline.
+ * Structure: a brand hero band in the accent color, a tab bar that splits the
+ * sections into focused panels, cards whose header carries the section's master
+ * control/status, and settings rows (label left, control right).
+ */
+
+/* Bundled wordmark/heading face: Quicksand (SIL OFL 1.1), shipped locally so we
+   never call a third-party font CDN at runtime. Variable woff2 covers 500-700. */
+@font-face {
+	font-family: "Tagbridge Quicksand";
+	font-style: normal;
+	font-weight: 500 700;
+	font-display: swap;
+	src: url("../fonts/quicksand-latin.woff2") format("woff2");
+}
+
+.tagbridge-wrap {
+	/* Color tokens. */
+	--hp-ink: #23251d;
+	--hp-ink-soft: #4d4f46;
+	--hp-ink-faint: #74766c;
+	--hp-canvas: #ffffff;
+	--hp-canvas-soft: #fbfaf6;
+	--hp-border: #e6e3d8;
+	--hp-border-strong: #c9c5b5;
+	--hp-accent: #f7a501;
+	--hp-accent-hover: #e59800;
+	--hp-accent-ink: #23251d;
+	--hp-brand-red: #f54e00; /* brand moments only, never status */
+	--hp-success: #2f8a4e;
+	--hp-success-soft: #eaf5ee;
+	--hp-warning: #b8860b;
+	--hp-error: #c0392b;
+	--hp-error-soft: #fbecea;
+
+	/* Type tokens. Heading face is the bundled Quicksand, with a rounded
+	   geometric system fallback while the woff2 loads. */
+	--hp-font-title: "Tagbridge Quicksand", ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", Quicksand, Nunito, "Segoe UI", system-ui, sans-serif;
+	--hp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+	/* Shape + motion tokens. */
+	--hp-radius: 10px;
+	--hp-radius-sm: 6px;
+	--hp-shadow-card: 0 1px 2px rgba(35, 37, 29, 0.04);
+	--hp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--hp-dur: 0.18s;
+
+	max-width: none;
+	margin-right: 20px;
+	color: var(--hp-ink-soft);
+}
+
+/* ---- Brand hero band ---- */
+.tagbridge-hero {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin: 16px 0 0;
+	padding: 20px 24px;
+	border-radius: var(--hp-radius);
+	background: var(--hp-accent);
+	color: var(--hp-accent-ink);
+	box-shadow: var(--hp-shadow-card);
+}
+
+.tagbridge-hero__brand {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	min-width: 0;
+}
+
+.tagbridge-hero__titles {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.tagbridge-wordmark {
+	font-family: var(--hp-font-title);
+	font-weight: 700;
+	font-size: 28px;
+	line-height: 1.05;
+	letter-spacing: 0.2px;
+	color: var(--hp-ink);
+}
+
+.tagbridge-hero__subtitle {
+	margin-top: 3px;
+	font-size: 13px;
+	font-weight: 500;
+	color: rgba(35, 37, 29, 0.74);
+}
+
+.tagbridge-hero__meta {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+.tagbridge-hero__link {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--hp-ink);
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.tagbridge-hero__link:hover,
+.tagbridge-hero__link:focus {
+	color: var(--hp-ink);
+	text-decoration: underline;
+}
+
+/* Status pill (sits in the hero on the accent fill). */
+.tagbridge-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	border: 1px solid rgba(35, 37, 29, 0.18);
+	background: rgba(255, 255, 255, 0.65);
+	color: var(--hp-ink);
+	white-space: nowrap;
+}
+
+.tagbridge-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	opacity: 0.45;
+}
+
+.tagbridge-pill--ok {
+	color: var(--hp-success);
+	border-color: var(--hp-success);
+	background: var(--hp-success-soft);
+}
+
+.tagbridge-pill--ok .tagbridge-dot {
+	opacity: 1;
+}
+
+/* ---- Tabs ---- */
+.tagbridge-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 22px 0 18px;
+	border-bottom: 1px solid var(--hp-border);
+}
+
+.tagbridge-tab {
+	appearance: none;
+	cursor: pointer;
+	border: 0;
+	background: transparent;
+	margin: 0;
+	padding: 10px 16px;
+	font-family: var(--hp-font-title);
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--hp-ink-soft);
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+	border-radius: var(--hp-radius-sm) var(--hp-radius-sm) 0 0;
+	transition: color var(--hp-dur) var(--hp-ease), border-color var(--hp-dur) var(--hp-ease), background var(--hp-dur) var(--hp-ease);
+}
+
+.tagbridge-tab:hover,
+.tagbridge-tab:focus {
+	color: var(--hp-ink);
+	background: var(--hp-canvas-soft);
+}
+
+.tagbridge-tab:focus-visible {
+	outline: 2px solid var(--hp-accent);
+	outline-offset: -2px;
+}
+
+.tagbridge-tab.is-active {
+	color: var(--hp-ink);
+	border-bottom-color: var(--hp-accent);
+}
+
+/* ---- Panels ---- */
+.tagbridge-panel[hidden] {
+	display: none;
+}
+
+.tagbridge-panel:focus {
+	outline: none;
+}
+
+/* ---- Flash messages ---- */
+.tagbridge-flash {
+	border: 1px solid var(--hp-border-strong);
+	border-left-width: 3px;
+	border-radius: var(--hp-radius-sm);
+	padding: 12px 14px;
+	margin: 0 0 18px;
+	background: var(--hp-canvas);
+	color: var(--hp-ink);
+	font-size: 13px;
+}
+
+.tagbridge-flash--ok {
+	border-left-color: var(--hp-success);
+	background: var(--hp-success-soft);
+}
+
+.tagbridge-flash--error {
+	border-left-color: var(--hp-error);
+	background: var(--hp-error-soft);
+}
+
+/* ---- Cards ---- */
+.tagbridge-card {
+	background: var(--hp-canvas);
+	border: 1px solid var(--hp-border);
+	border-radius: var(--hp-radius);
+	box-shadow: var(--hp-shadow-card);
+	margin: 0 0 16px;
+	overflow: hidden;
+}
+
+.tagbridge-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 18px 24px;
+	border-bottom: 1px solid var(--hp-border);
+	background: var(--hp-canvas);
+}
+
+.tagbridge-card__title {
+	font-family: var(--hp-font-title);
+	font-weight: 600;
+	color: var(--hp-ink);
+	font-size: 17px;
+	margin: 0;
+	padding: 0;
+}
+
+.tagbridge-card__body {
+	padding: 10px 24px 16px;
+}
+
+.tagbridge-card__lead {
+	color: var(--hp-ink-soft);
+	font-size: 13.5px;
+	line-height: 1.5;
+	margin: 12px 0 8px;
+	max-width: 64ch;
+}
+
+/* Minimal dot + text status (e.g. "Connected"), no border or background. */
+.tagbridge-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--hp-ink-faint);
+	white-space: nowrap;
+}
+
+.tagbridge-status::before {
+	content: "";
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: var(--hp-border-strong);
+}
+
+.tagbridge-status--ok {
+	color: var(--hp-success);
+}
+
+.tagbridge-status--ok::before {
+	background: var(--hp-success);
+}
+
+/* ---- Stacked fields (connection inputs) ---- */
+.tagbridge-field {
+	margin: 16px 0;
+}
+
+.tagbridge-label {
+	display: block;
+	font-weight: 600;
+	color: var(--hp-ink);
+	font-size: 13px;
+	margin: 0 0 6px;
+}
+
+.tagbridge-input {
+	border: 1px solid var(--hp-border-strong);
+	border-radius: var(--hp-radius-sm);
+	background: var(--hp-canvas);
+	color: var(--hp-ink);
+	padding: 8px 11px;
+	font-size: 14px;
+}
+
+.tagbridge-input--mono {
+	font-family: var(--hp-font-mono);
+	font-size: 13px;
+}
+
+.tagbridge-input:focus {
+	border-color: var(--hp-accent);
+	outline: 2px solid var(--hp-accent);
+	outline-offset: 1px;
+	box-shadow: none;
+}
+
+.tagbridge-help {
+	color: var(--hp-ink-soft);
+	font-size: 13px;
+	margin: 0 0 12px;
+	max-width: 64ch;
+}
+
+.tagbridge-help--field {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: var(--hp-ink-faint);
+}
+
+/* ---- Settings rows (label left, control right) ---- */
+.tagbridge-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 15px 24px;
+	margin: 0 -24px;
+	border-top: 1px solid var(--hp-border);
+	cursor: pointer;
+	transition: background var(--hp-dur) var(--hp-ease);
+}
+
+.tagbridge-row:first-of-type {
+	border-top: 0;
+}
+
+.tagbridge-row:hover,
+.tagbridge-row:focus-within {
+	background: var(--hp-canvas-soft);
+}
+
+.tagbridge-row--static,
+.tagbridge-row--static:hover {
+	cursor: default;
+	background: transparent;
+}
+
+.tagbridge-row__text {
+	min-width: 0;
+}
+
+.tagbridge-row__label {
+	display: block;
+	font-weight: 600;
+	color: var(--hp-ink);
+	font-size: 13px;
+}
+
+.tagbridge-row__text .tagbridge-help--field {
+	margin-top: 3px;
+}
+
+/* Dependent body dims when its master switch is off. */
+.tagbridge-dependent.is-muted {
+	opacity: 0.45;
+}
+
+.tagbridge-dependent.is-muted .tagbridge-row {
+	pointer-events: none;
+}
+
+/* ---- Switch ---- */
+.tagbridge-switch__input {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+}
+
+.tagbridge-switch__track {
+	flex: 0 0 auto;
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 23px;
+	border-radius: 999px;
+	background: var(--hp-canvas);
+	border: 1px solid var(--hp-border-strong);
+	transition: background var(--hp-dur) var(--hp-ease), border-color var(--hp-dur) var(--hp-ease);
+}
+
+.tagbridge-switch__thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 17px;
+	height: 17px;
+	border-radius: 50%;
+	background: #fff;
+	border: 1px solid var(--hp-border-strong);
+	box-shadow: 0 1px 1px rgba(35, 37, 29, 0.12);
+	transition: transform var(--hp-dur) var(--hp-ease);
+}
+
+.tagbridge-switch__input:checked + .tagbridge-switch__track {
+	background: var(--hp-accent);
+	border-color: var(--hp-accent);
+}
+
+.tagbridge-switch__input:checked + .tagbridge-switch__track .tagbridge-switch__thumb {
+	transform: translateX(17px);
+	border-color: var(--hp-accent);
+}
+
+.tagbridge-switch__input:focus-visible + .tagbridge-switch__track {
+	outline: 2px solid var(--hp-accent);
+	outline-offset: 2px;
+}
+
+/* Head switch (master control inside a card header). */
+.tagbridge-headswitch {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+/* Select used inside a settings row. */
+.tagbridge-row .tagbridge-input {
+	max-width: 260px;
+}
+
+/* ---- Action bar ---- */
+.tagbridge-actionbar {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin: 18px 0 0;
+}
+
+.tagbridge-btn.button-primary {
+	background: var(--hp-accent);
+	border-color: var(--hp-accent);
+	color: var(--hp-accent-ink);
+	font-family: var(--hp-font-title);
+	font-weight: 600;
+	text-shadow: none;
+	box-shadow: none;
+}
+
+.tagbridge-btn.button-primary:hover,
+.tagbridge-btn.button-primary:focus {
+	background: var(--hp-accent-hover);
+	border-color: var(--hp-accent-hover);
+	color: var(--hp-accent-ink);
+}
+
+.tagbridge-btn.button-primary:focus {
+	outline: 2px solid var(--hp-ink);
+	outline-offset: 1px;
+}
+
+.tagbridge-actionbar__note {
+	font-size: 12px;
+	color: var(--hp-ink-faint);
+}
+
+/* ---- Responsive ---- */
+@media screen and (max-width: 782px) {
+	.tagbridge-hero {
+		align-items: flex-start;
+	}
+
+	.tagbridge-tabs {
+		gap: 0;
+	}
+
+	.tagbridge-tab {
+		padding: 10px 12px;
+		font-size: 13px;
+	}
+
+	.tagbridge-row {
+		gap: 12px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tagbridge-switch__track,
+	.tagbridge-switch__thumb {
+		transition: none;
+	}
+}

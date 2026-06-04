@@ -1,0 +1,325 @@
+# Copyright (C) 2026 Great Anthony
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Tagbridge – Deep Integration for PostHog 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/tagbridge\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-03T00:34:48+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: tagbridge\n"
+
+#. Plugin Name of the plugin
+#: tagbridge.php
+msgid "Tagbridge – Deep Integration for PostHog"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: tagbridge.php
+msgid "https://github.com/0xdidi/tagbridge"
+msgstr ""
+
+#. Description of the plugin
+#: tagbridge.php
+msgid "Independent PostHog integration for WordPress. Connect your project, configure tracking, and send pageviews and events to PostHog. Not affiliated with PostHog."
+msgstr ""
+
+#. Author of the plugin
+#: tagbridge.php
+msgid "Great Anthony"
+msgstr ""
+
+#. Author URI of the plugin
+#: tagbridge.php
+msgid "https://greatanthony.com"
+msgstr ""
+
+#. translators: 1: required PHP version, 2: current PHP version.
+#: tagbridge.php:42
+#, php-format
+msgid "Tagbridge requires PHP %1$s or higher. You are running PHP %2$s. The plugin has been kept inactive to avoid breaking your site."
+msgstr ""
+
+#: src/Platform/Admin/Notices.php:91
+#: src/Platform/Admin/SettingsPage.php:62
+#: src/Platform/Admin/SettingsPage.php:63
+#: src/Platform/Admin/SettingsPage.php:232
+msgid "Tagbridge"
+msgstr ""
+
+#: src/Platform/Admin/Notices.php:93
+msgid "Finish setup to start sending events to PostHog. It takes about a minute."
+msgstr ""
+
+#: src/Platform/Admin/Notices.php:97
+msgid "Set up PostHog"
+msgstr ""
+
+#: src/Platform/Admin/Notices.php:100
+msgid "Dismiss"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:124
+msgid "You do not have permission to do that."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:152
+msgid "Settings saved."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:153
+msgid "Connected and saved. PostHog will start receiving events on your site."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:216
+msgid "You do not have permission to view this page."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:235
+msgid "Connected"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:239
+msgid "Not connected"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:255
+msgid "Connection"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:257
+msgid "Paste your PostHog project API key and pick your region. We check it before saving."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:261
+msgid "Project API key"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:273
+msgid "Find this in PostHog under Settings, Project, Project API key. It is safe to expose in the browser."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:278
+msgid "Region"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:280
+msgid "US cloud (us.i.posthog.com)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:281
+msgid "EU cloud (eu.i.posthog.com)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:282
+msgid "Self-hosted or reverse proxy"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:287
+msgid "Custom host URL"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:299
+msgid "The full URL of your PostHog instance or reverse proxy, including https://."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:305
+msgid "Tracking"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:307
+msgid "Choose what PostHog captures in the browser. You can change these any time."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:314
+msgid "Track pageviews"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:315
+msgid "Record a pageview each time someone loads a page."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:321
+msgid "Autocapture clicks and forms"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:322
+msgid "Automatically capture clicks, form submissions, and other interactions."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:328
+msgid "Record sessions"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:329
+msgid "Capture session replays. Heavier, so it is off by default."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:335
+msgid "Privacy-first cookieless mode"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:336
+msgid "Keep visitor state in memory only, so no PostHog cookie is set."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:342
+msgid "Person profiles"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:344
+msgid "Identified people only (recommended)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:345
+msgid "Everyone, including anonymous"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:348
+msgid "Identified-only keeps anonymous visitors lightweight and is the usual choice."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:354
+msgid "Identity"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:356
+msgid "Tie logged-in WordPress users to a PostHog person so their activity is one profile across sessions. The identifier is a hash, never the raw user ID."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:368
+msgid "Identify logged-in users"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:369
+msgid "Send a stable, hashed identifier for logged-in users so sessions merge into one person."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:375
+msgid "Send email address"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:376
+msgid "Attach the user email to their PostHog person profile."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:382
+msgid "Send display name"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:383
+msgid "Attach the user display name to their PostHog person profile."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:389
+msgid "Send role"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:390
+msgid "Attach the user primary role to their PostHog person profile."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:397
+msgid "Server-side events"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:399
+msgid "Send key events from your site's server, so they still arrive when a visitor's browser blocks tracking. These run on your existing WordPress hosting; nothing extra to set up."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:408
+msgid "Send events from the server"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:409
+msgid "Master switch for all server-side events below."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:415
+msgid "User logged in"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:416
+msgid "Capture when a user logs in."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:422
+msgid "User registered"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:423
+msgid "Capture when a new user account is created."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:431
+msgid "Product viewed (WooCommerce)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:432
+msgid "Capture when a product page is viewed."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:438
+msgid "Added to cart (WooCommerce)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:439
+msgid "Capture when a product is added to the cart."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:445
+msgid "Checkout started (WooCommerce)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:446
+msgid "Capture when a checkout is submitted."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:452
+msgid "Order completed (WooCommerce)"
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:453
+msgid "Capture when an order is marked completed, with order value and currency."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:459
+msgid "WooCommerce is not active. Install WooCommerce to capture commerce events (product views, add to cart, checkout, orders)."
+msgstr ""
+
+#: src/Platform/Admin/SettingsPage.php:468
+msgid "Validate and save"
+msgstr ""
+
+#: src/Platform/Connection/Validator.php:35
+msgid "Enter your PostHog project API key."
+msgstr ""
+
+#: src/Platform/Connection/Validator.php:42
+msgid "That host does not look like a valid URL. Check the region or custom host."
+msgstr ""
+
+#. translators: %s: the host URL that could not be reached.
+#: src/Platform/Connection/Validator.php:65
+#, php-format
+msgid "We could not reach PostHog at %s. Check the region or custom host and try again."
+msgstr ""
+
+#: src/Platform/Connection/Validator.php:74
+msgid "Connected. Your key and host check out."
+msgstr ""
+
+#: src/Platform/Connection/Validator.php:81
+msgid "That project API key was rejected by PostHog. Double-check the key and the region."
+msgstr ""
+
+#. translators: %d: the HTTP status code returned by PostHog.
+#: src/Platform/Connection/Validator.php:88
+#, php-format
+msgid "PostHog returned an unexpected response (HTTP %d). Try again in a moment."
+msgstr ""
