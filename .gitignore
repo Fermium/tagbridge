@@ -28,6 +28,10 @@ Thumbs.db
 /.idea/
 /.vscode/
 
+# Internal notes never ship or get committed. Private working docs live in the
+# parent (non-repo) directory; this guards against any docs/ created inside.
+/docs/
+
 # Composer: vendor/ is NOT committed (it would include heavy dev tooling).
 # composer.lock IS committed for reproducible installs. The distribution ZIP is
 # built with `composer install --no-dev` so the shipped plugin vendors
