@@ -57,6 +57,34 @@ languages/              Translation template (.pot)
 tests/                  PHPUnit tests
 ```
 
+## Security
+
+### Custom host and SSRF (known, accepted tradeoff)
+
+When the PostHog region is set to "Self-hosted or reverse proxy," the admin
+supplies a custom host URL. The server then makes requests to that URL: a
+validation POST (`Modules\PostHog\Connection\Validator`) and, when server-side
+events are enabled, event delivery via posthog-php. A server fetching an
+admin-supplied URL is the classic shape of a Server-Side Request Forgery (SSRF)
+vector — a crafted internal URL (e.g. a cloud metadata endpoint like
+`http://169.254.169.254/...`) could be reached from inside the host's network.
+
+This is **accepted as-is** for now, because:
+
+- Only users with `manage_options` can set the custom host. Such a user can
+  already install plugins and run arbitrary PHP, so this grants no new
+  capability on a single-site install.
+- The custom host is a documented, advertised feature. Hardening with
+  `wp_safe_remote_*` / `wp_http_validate_url()` would block private/internal IPs
+  and break legitimate self-hosted or reverse-proxy installs on internal
+  networks.
+
+If a stronger threat model is needed later (e.g. multisite with semi-trusted
+site admins), the recommended middle ground is to reject only the cloud-metadata
+link-local range (`169.254.169.254`) in the validator before saving — this
+removes the highest-value SSRF target without breaking internal self-hosted
+hosts.
+
 ## License
 
 GPL-2.0-or-later.
