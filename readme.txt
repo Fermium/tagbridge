@@ -131,6 +131,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 == Changelog ==
 
 = 0.4.0 =
+* Link to PostHog's WooCommerce data warehouse source from the Server events screen, for SQL analytics on your orders, customers, and products.
 * Reverse proxy: the connection screen now recommends PostHog's free managed reverse proxy (with a link to the docs) and points the custom-host field at a proxy subdomain, so events get past ad blockers.
 * Error tracking: capture unhandled browser (JavaScript) errors out of the box, and optionally uncaught PHP exceptions and errors from your server (opt-in; installs a chained PHP error handler that does not replace existing ones). Server-side errors are stitched to the same person as your other events.
 

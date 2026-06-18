@@ -418,6 +418,26 @@ final class SettingsPanel {
 						<?php
 					}
 					?>
+					<?php if ( $woo_active ) : ?>
+						<p class="tagbridge-help tagbridge-help--field">
+							<?php
+							printf(
+								wp_kses(
+									/* translators: %s: URL of PostHog's WooCommerce data warehouse source documentation. */
+									__( 'For SQL analytics on your orders, customers, and products, PostHog can sync your store as a <a href="%s" target="_blank" rel="noopener noreferrer">WooCommerce data warehouse source</a> and query it next to these events.', 'tagbridge' ),
+									array(
+										'a' => array(
+											'href'   => array(),
+											'target' => array(),
+											'rel'    => array(),
+										),
+									)
+								),
+								esc_url( 'https://posthog.com/docs/data-warehouse/sources/woocommerce' )
+							);
+							?>
+						</p>
+					<?php endif; ?>
 				</div>
 			</section>
 		</div>
