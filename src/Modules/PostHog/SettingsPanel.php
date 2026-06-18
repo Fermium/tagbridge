@@ -95,11 +95,11 @@ final class SettingsPanel {
 				</div>
 				<div class="tagbridge-card__body">
 					<p class="tagbridge-help">
-						<?php esc_html_e( 'Paste your PostHog project API key and pick your region. We check it before saving.', 'tagbridge' ); ?>
+						<?php esc_html_e( 'Paste your PostHog project token and pick your region. We check it before saving.', 'tagbridge' ); ?>
 					</p>
 
 					<div class="tagbridge-field">
-						<label class="tagbridge-label" for="tagbridge-key"><?php esc_html_e( 'Project API key', 'tagbridge' ); ?></label>
+						<label class="tagbridge-label" for="tagbridge-key"><?php esc_html_e( 'Project token', 'tagbridge' ); ?></label>
 						<input
 							type="text"
 							id="tagbridge-key"
@@ -111,7 +111,7 @@ final class SettingsPanel {
 							placeholder="phc_..."
 						/>
 						<p class="tagbridge-help tagbridge-help--field">
-							<?php esc_html_e( 'Find this in PostHog under Settings, Project, Project API key. It is safe to expose in the browser.', 'tagbridge' ); ?>
+							<?php esc_html_e( 'Find this in PostHog under Settings, General, Project token. It is safe to expose in the browser.', 'tagbridge' ); ?>
 						</p>
 					</div>
 

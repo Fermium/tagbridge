@@ -12,14 +12,14 @@ Independent PostHog integration for WordPress. Connect your project and send pag
 
 == Description ==
 
-Tagbridge is a simple, independent way to add PostHog to WordPress: PostHog for WordPress, without touching code. Enter your PostHog project API key, choose your region, and Tagbridge loads PostHog on your site with the settings you pick.
+Tagbridge is a simple, independent way to add PostHog to WordPress: PostHog for WordPress, without touching code. Enter your PostHog project token, choose your region, and Tagbridge loads PostHog on your site with the settings you pick.
 
 Tagbridge is an independent project. It is not affiliated with, endorsed by, or sponsored by PostHog. "PostHog" is a trademark of its respective owner and is used here only to describe what this plugin connects to.
 
 = What it does today =
 
 * Connect to PostHog Cloud (US or EU) or your own self-hosted or reverse-proxy host.
-* Your project API key is checked with a live test call before it is saved, so you know right away if it is correct.
+* Your project token is checked with a live test call before it is saved, so you know right away if it is correct.
 * Loads PostHog (posthog-js) from the host you configure, so self-hosted and reverse-proxy setups work without code.
 * Plain-language toggles for what gets captured: pageviews, autocapture (clicks and form interactions), session recording, and person profile mode.
 * Privacy-first cookieless mode that keeps visitor state in memory, so no PostHog cookie is set.
@@ -40,11 +40,11 @@ Planned for future releases:
 
 1. Install and activate the plugin.
 2. In the WordPress admin, open the "PostHog" menu.
-3. Paste your PostHog project API key and choose your region (US, EU, or self-hosted / reverse proxy).
+3. Paste your PostHog project token and choose your region (US, EU, or self-hosted / reverse proxy).
 4. Save. Tagbridge checks the key with PostHog before saving and tells you if it worked.
 5. Choose what to track, then save again. PostHog will start receiving data from your site.
 
-You can find your project API key in PostHog under Settings, Project, Project API key. It is a public key and is safe to use in the browser.
+You can find your project token in PostHog under Settings, General, Project token. It is a public key and is safe to use in the browser.
 
 == Frequently Asked Questions ==
 
@@ -54,7 +54,7 @@ No. Tagbridge is an independent project and is not affiliated with or endorsed b
 
 = Do I need a PostHog account? =
 
-Yes. You need a PostHog project and its project API key. PostHog offers a free tier. See https://posthog.com.
+Yes. You need a PostHog project and its project token. PostHog offers a free tier. See https://posthog.com.
 
 = Does it work with self-hosted PostHog or a reverse proxy? =
 
@@ -66,7 +66,7 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 
 == Screenshots ==
 
-1. Connect your PostHog project: paste the project API key and choose your region. The key is checked with PostHog before it is saved.
+1. Connect your PostHog project: paste the project token and choose your region. The key is checked with PostHog before it is saved.
 2. Once connected, choose what to track with plain-language toggles: pageviews, autocapture, session recording, person profiles, and privacy-first cookieless mode.
 
 == External services ==
@@ -75,7 +75,7 @@ This plugin connects to PostHog, the analytics service you configure. It is requ
 
 What is sent and when:
 
-* When you save your settings in the admin, the plugin makes one request to the PostHog feature-flags endpoint (for example https://us.i.posthog.com/flags) with your project API key to confirm the key and host are valid. This request does not record any analytics event.
+* When you save your settings in the admin, the plugin makes one request to the PostHog feature-flags endpoint (for example https://us.i.posthog.com/flags) with your project token to confirm the key and host are valid. This request does not record any analytics event.
 * On your site's front end, after you have connected and only when configured, the plugin loads PostHog (posthog-js) from the host you choose (PostHog US cloud, EU cloud, or your own host). PostHog then sends visitor analytics such as pageviews and, if enabled, clicks and form interactions and session recordings, to your PostHog project. The exact data depends on the toggles you choose.
 * When server-side events are enabled, your WordPress server sends those events (for example user logged in, or a completed WooCommerce order with its value and currency) directly to your configured PostHog host. This happens from your server, not the visitor's browser.
 
@@ -90,7 +90,7 @@ PostHog privacy policy: https://posthog.com/privacy
 
 == Privacy ==
 
-No analytics are sent until you enter a PostHog project API key and connect. You control what is captured with the tracking toggles, and you can turn on cookieless mode so no PostHog cookie is set.
+No analytics are sent until you enter a PostHog project token and connect. You control what is captured with the tracking toggles, and you can turn on cookieless mode so no PostHog cookie is set.
 
 You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Support for the WordPress Consent API is planned for a future release.
 
