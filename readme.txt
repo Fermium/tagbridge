@@ -16,18 +16,29 @@ Tagbridge is a simple, independent way to add PostHog to WordPress: PostHog for 
 
 Tagbridge is an independent project. It is not affiliated with, endorsed by, or sponsored by PostHog. "PostHog" is a trademark of its respective owner and is used here only to describe what this plugin connects to.
 
-= What it does today =
+= Features =
 
-* Connect to PostHog Cloud (US or EU) or your own self-hosted or reverse-proxy host.
-* Your project token is checked with a live test call before it is saved, so you know right away if it is correct.
-* Loads PostHog (posthog-js) from the host you configure, so self-hosted and reverse-proxy setups work without code.
-* Plain-language toggles for what gets captured: pageviews, autocapture (clicks and form interactions), heatmaps, error tracking, session recording, and person profile mode.
-* Privacy-first cookieless mode that keeps visitor state in memory, so no PostHog cookie is set.
-* Identity: tie logged-in WordPress users to one PostHog person across anonymous and logged-in sessions, using a stable hashed identifier (never the raw user ID). You choose whether to identify logged-in users and which properties to send (email, name, role).
-* Server-side events: send key events (user logged in, user registered) from your own WordPress server, so they still arrive when a visitor's browser blocks tracking. Runs on your existing hosting, with a per-event on/off switch. A failed or slow PostHog request never affects your pages.
-* WooCommerce events (when WooCommerce is active): product viewed, added to cart, checkout started, and order completed with order value and currency. The same person is tracked from the browser session through to the completed order.
-* Error tracking: report unhandled JavaScript errors (on by default) and, optionally, uncaught PHP exceptions and errors from your server, in PostHog's error tracking.
-* A clean settings screen that fits WordPress and stays out of your way.
+* Connect to PostHog Cloud (US or EU) or a custom host (self-hosted or a reverse proxy). The project token is validated with a live request before it is saved.
+* Browser capture via posthog-js, loaded from the configured host. Each capability is a separate toggle: pageviews, autocapture, heatmaps, session replay, and JavaScript error tracking.
+* Session replay masks all form inputs and, by default, text inside known WooCommerce / CheckoutWC containers that render a name, email, or address.
+* Person profile mode (identified-only or everyone) and a cookieless mode (in-memory persistence; no PostHog cookie).
+* Identity: logged-in users are tied to one PostHog person via a stable hashed identifier (not the raw user ID). Email, name, and role are individually optional.
+* Server-side events via posthog-php, each with an on/off toggle behind a master switch. Sent from the server, so an ad blocker does not drop them; a failed or slow request never affects page output.
+* Server-side PHP error tracking (opt-in): posthog-php installs chained exception/error handlers; captured errors carry the visitor's distinct ID.
+
+= Events sent to PostHog =
+
+Client-side (posthog-js, per the toggles above): $pageview, $autocapture, $heatmap, $exception, session-replay snapshots, and $identify.
+
+Server-side (posthog-php), each individually toggleable:
+
+* user_logged_in, user_registered
+* product_viewed, product_list_viewed, products_searched
+* product_added_to_cart, product_removed_from_cart, cart_viewed
+* coupon_applied, coupon_removed
+* checkout_started, order_completed, payment_failed, order_refunded, order_cancelled
+
+WooCommerce events are registered only when WooCommerce is active. Order events include value and currency and resolve to the same person as the checkout session.
 
 = On the roadmap =
 
@@ -71,6 +82,26 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 
 1. Connect your PostHog project: paste the project token and choose your region. The key is checked with PostHog before it is saved.
 2. Once connected, choose what to track with plain-language toggles: pageviews, autocapture, heatmaps, error tracking, session recording, person profiles, and privacy-first cookieless mode.
+
+== Reference ==
+
+= WordPress actions the plugin hooks =
+
+* wp_head — print the posthog-js snippet
+* wp_login, user_register — identity, plus the user_logged_in / user_registered events
+* template_redirect — product_viewed, product_list_viewed, products_searched, cart_viewed
+* woocommerce_add_to_cart, woocommerce_cart_item_removed
+* woocommerce_applied_coupon, woocommerce_removed_coupon
+* woocommerce_checkout_order_processed, woocommerce_order_status_completed
+* woocommerce_order_status_failed, woocommerce_order_refunded, woocommerce_order_status_cancelled
+* shutdown — flush queued server-side events
+* admin_menu, admin_init, admin_enqueue_scripts, admin_notices, admin_post_* — the settings screen
+
+= Filters the plugin provides =
+
+* tagbridge_posthog_js_config — the posthog-js init config array, before it is printed.
+* tagbridge_posthog_mask_text_selector — the session-replay text-masking CSS selector (empty disables it).
+* tagbridge_module_manifest — the list of registered integration modules.
 
 == External services ==
 
