@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -134,6 +134,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.8.1 =
+* Documentation: updated the developer README (three-layer architecture, events overview, repository layout) and the feature list. No functional changes.
+
 = 0.8.0 =
 * product_purchased: one event per line item in a completed order, with SKU, variant, quantity, line revenue, categories, and attributes - so sales break down by SKU and attribute, closing the want-to-bought loop.
 
@@ -174,6 +177,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.8.1 =
+Documentation only. No functional changes.
 
 = 0.8.0 =
 Adds a per-line-item product_purchased event for SKU/attribute sales breakdowns.
