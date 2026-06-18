@@ -119,7 +119,7 @@ final class Notices {
 			return;
 		}
 
-		$setup_url   = admin_url( 'admin.php?page=' . SettingsPage::SLUG );
+		$setup_url   = admin_url( 'options-general.php?page=' . SettingsPage::SLUG );
 		$dismiss_url = wp_nonce_url( add_query_arg( self::DISMISS_ARG, '1' ), self::DISMISS_ARG );
 		?>
 		<div class="notice notice-info">

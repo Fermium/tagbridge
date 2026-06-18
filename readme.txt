@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,7 +51,7 @@ Planned for future releases:
 == Installation ==
 
 1. Install and activate the plugin.
-2. In the WordPress admin, open the "PostHog" menu.
+2. In the WordPress admin, go to Settings, then Tagbridge.
 3. Paste your PostHog project token and choose your region (US, EU, or self-hosted / reverse proxy).
 4. Save. Tagbridge checks the key with PostHog before saving and tells you if it worked.
 5. Choose what to track, then save again. PostHog will start receiving data from your site.
@@ -130,6 +130,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.4.1 =
+* Move the settings screen under the WordPress Settings menu (Settings, Tagbridge) instead of a top-level sidebar item.
+
 = 0.4.0 =
 * Link to PostHog's WooCommerce data warehouse source from the Server events screen, for SQL analytics on your orders, customers, and products.
 * Reverse proxy: the connection screen now recommends PostHog's free managed reverse proxy (with a link to the docs) and points the custom-host field at a proxy subdomain, so events get past ad blockers.
@@ -155,6 +158,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.4.1 =
+The settings screen moved under Settings, Tagbridge.
 
 = 0.4.0 =
 Adds JavaScript error tracking (on by default) and opt-in server-side PHP error tracking.

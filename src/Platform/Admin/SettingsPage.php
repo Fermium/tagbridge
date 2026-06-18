@@ -18,7 +18,7 @@ use Tagbridge\Platform\Modules\Registry;
 use Tagbridge\Platform\Settings\Options;
 
 /**
- * The plugin's top-level settings screen.
+ * The plugin's settings screen, under the WordPress Settings menu.
  */
 final class SettingsPage {
 
@@ -71,19 +71,17 @@ final class SettingsPage {
 	}
 
 	/**
-	 * Add the top-level admin menu.
+	 * Add the settings page as a submenu under the WordPress Settings menu.
 	 *
 	 * @return void
 	 */
 	public function add_menu() {
-		add_menu_page(
+		add_options_page(
 			__( 'Tagbridge', 'tagbridge' ),
 			__( 'Tagbridge', 'tagbridge' ),
 			'manage_options',
 			self::SLUG,
-			array( $this, 'render' ),
-			'dashicons-randomize',
-			58
+			array( $this, 'render' )
 		);
 	}
 
@@ -93,7 +91,7 @@ final class SettingsPage {
 	 * @return string
 	 */
 	public static function hook_suffix() {
-		return 'toplevel_page_' . self::SLUG;
+		return 'settings_page_' . self::SLUG;
 	}
 
 	/**
@@ -240,7 +238,7 @@ final class SettingsPage {
 	 * @return void
 	 */
 	private function redirect_back() {
-		wp_safe_redirect( admin_url( 'admin.php?page=' . self::SLUG ) );
+		wp_safe_redirect( admin_url( 'options-general.php?page=' . self::SLUG ) );
 		exit;
 	}
 
