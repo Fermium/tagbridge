@@ -64,9 +64,18 @@ final class WooEvents {
 		}
 
 		add_action( 'template_redirect', array( $this, 'on_product_view' ) );
+		add_action( 'template_redirect', array( $this, 'on_product_list_view' ) );
+		add_action( 'template_redirect', array( $this, 'on_search' ) );
+		add_action( 'template_redirect', array( $this, 'on_cart_view' ) );
 		add_action( 'woocommerce_add_to_cart', array( $this, 'on_add_to_cart' ), 10, 6 );
+		add_action( 'woocommerce_cart_item_removed', array( $this, 'on_remove_from_cart' ), 10, 2 );
+		add_action( 'woocommerce_applied_coupon', array( $this, 'on_coupon_applied' ), 10, 1 );
+		add_action( 'woocommerce_removed_coupon', array( $this, 'on_coupon_removed' ), 10, 1 );
 		add_action( 'woocommerce_checkout_order_processed', array( $this, 'on_checkout' ), 10, 3 );
 		add_action( 'woocommerce_order_status_completed', array( $this, 'on_order_completed' ), 10, 1 );
+		add_action( 'woocommerce_order_status_failed', array( $this, 'on_payment_failed' ), 10, 2 );
+		add_action( 'woocommerce_order_refunded', array( $this, 'on_order_refunded' ), 10, 2 );
+		add_action( 'woocommerce_order_status_cancelled', array( $this, 'on_order_cancelled' ), 10, 2 );
 	}
 
 	/**
@@ -173,6 +182,233 @@ final class WooEvents {
 				'value'      => (float) $order->get_total(),
 				'currency'   => $order->get_currency(),
 				'item_count' => $order->get_item_count(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a product-list view (shop, category, or tag archive).
+	 *
+	 * @return void
+	 */
+	public function on_product_list_view() {
+		if ( ! function_exists( 'is_shop' ) ) {
+			return;
+		}
+
+		$term = null;
+		if ( is_shop() ) {
+			$list_type = 'shop';
+		} elseif ( is_product_category() ) {
+			$list_type = 'category';
+			$term      = get_queried_object();
+		} elseif ( is_product_tag() ) {
+			$list_type = 'tag';
+			$term      = get_queried_object();
+		} else {
+			return;
+		}
+
+		$this->dispatcher->capture(
+			'product_list_viewed',
+			$this->visitor_distinct_id(),
+			array(
+				'list_type'     => $list_type,
+				'term_id'       => $term instanceof \WP_Term ? (int) $term->term_id : null,
+				'term_name'     => $term instanceof \WP_Term ? $term->name : null,
+				'product_count' => isset( $GLOBALS['wp_query'] ) ? (int) $GLOBALS['wp_query']->found_posts : null,
+			)
+		);
+	}
+
+	/**
+	 * Capture a search, with the query and the number of results.
+	 *
+	 * @return void
+	 */
+	public function on_search() {
+		if ( ! function_exists( 'is_search' ) || ! is_search() ) {
+			return;
+		}
+
+		$this->dispatcher->capture(
+			'products_searched',
+			$this->visitor_distinct_id(),
+			array(
+				'query'        => get_search_query(),
+				'result_count' => isset( $GLOBALS['wp_query'] ) ? (int) $GLOBALS['wp_query']->found_posts : null,
+			)
+		);
+	}
+
+	/**
+	 * Capture a view of the cart page.
+	 *
+	 * @return void
+	 */
+	public function on_cart_view() {
+		if ( ! function_exists( 'is_cart' ) || ! is_cart() ) {
+			return;
+		}
+
+		$cart = function_exists( 'WC' ) ? WC()->cart : null;
+
+		$this->dispatcher->capture(
+			'cart_viewed',
+			$this->visitor_distinct_id(),
+			array(
+				'item_count' => $cart ? (int) $cart->get_cart_contents_count() : null,
+				'value'      => $cart ? (float) $cart->get_cart_contents_total() : null,
+				'currency'   => get_woocommerce_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a cart item removal.
+	 *
+	 * @param string         $cart_item_key Removed cart item key.
+	 * @param \WC_Cart|null  $cart          The cart instance.
+	 * @return void
+	 */
+	public function on_remove_from_cart( $cart_item_key, $cart = null ) {
+		$removed = ( $cart instanceof \WC_Cart && isset( $cart->removed_cart_contents[ $cart_item_key ] ) )
+			? $cart->removed_cart_contents[ $cart_item_key ]
+			: array();
+
+		$product_id = isset( $removed['product_id'] ) ? (int) $removed['product_id'] : 0;
+		$product    = $product_id ? wc_get_product( $product_id ) : null;
+
+		$this->dispatcher->capture(
+			'product_removed_from_cart',
+			$this->visitor_distinct_id(),
+			array(
+				'product_id' => $product_id,
+				'name'       => $product ? $product->get_name() : '',
+				'quantity'   => isset( $removed['quantity'] ) ? (int) $removed['quantity'] : null,
+				'currency'   => get_woocommerce_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a coupon being applied.
+	 *
+	 * @param string $coupon_code The coupon code.
+	 * @return void
+	 */
+	public function on_coupon_applied( $coupon_code ) {
+		$cart = function_exists( 'WC' ) ? WC()->cart : null;
+
+		$this->dispatcher->capture(
+			'coupon_applied',
+			$this->visitor_distinct_id(),
+			array(
+				'coupon_code'    => (string) $coupon_code,
+				'cart_value'     => $cart ? (float) $cart->get_cart_contents_total() : null,
+				'discount_total' => $cart ? (float) $cart->get_discount_total() : null,
+				'currency'       => get_woocommerce_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a coupon being removed.
+	 *
+	 * @param string $coupon_code The coupon code.
+	 * @return void
+	 */
+	public function on_coupon_removed( $coupon_code ) {
+		$this->dispatcher->capture(
+			'coupon_removed',
+			$this->visitor_distinct_id(),
+			array(
+				'coupon_code' => (string) $coupon_code,
+				'currency'    => get_woocommerce_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a failed payment.
+	 *
+	 * @param int            $order_id Order id.
+	 * @param \WC_Order|null $order   The order.
+	 * @return void
+	 */
+	public function on_payment_failed( $order_id, $order = null ) {
+		if ( ! $order instanceof \WC_Order ) {
+			$order = wc_get_order( $order_id );
+		}
+		if ( ! $order ) {
+			return;
+		}
+
+		$this->dispatcher->capture(
+			'payment_failed',
+			$this->order_distinct_id( $order ),
+			array(
+				'order_id'       => $order->get_id(),
+				'value'          => (float) $order->get_total(),
+				'currency'       => $order->get_currency(),
+				'payment_method' => $order->get_payment_method(),
+			)
+		);
+	}
+
+	/**
+	 * Capture an order refund (full or partial).
+	 *
+	 * @param int $order_id  Order id.
+	 * @param int $refund_id Refund id.
+	 * @return void
+	 */
+	public function on_order_refunded( $order_id, $refund_id = 0 ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$refund        = $refund_id ? wc_get_order( $refund_id ) : null;
+		$refund_amount = $refund instanceof \WC_Order_Refund
+			? (float) $refund->get_amount()
+			: (float) $order->get_total_refunded();
+
+		$this->dispatcher->capture(
+			'order_refunded',
+			$this->order_distinct_id( $order ),
+			array(
+				'order_id'      => $order->get_id(),
+				'refund_id'     => (int) $refund_id,
+				'refund_amount' => $refund_amount,
+				'order_value'   => (float) $order->get_total(),
+				'currency'      => $order->get_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a cancelled order.
+	 *
+	 * @param int            $order_id Order id.
+	 * @param \WC_Order|null $order   The order.
+	 * @return void
+	 */
+	public function on_order_cancelled( $order_id, $order = null ) {
+		if ( ! $order instanceof \WC_Order ) {
+			$order = wc_get_order( $order_id );
+		}
+		if ( ! $order ) {
+			return;
+		}
+
+		$this->dispatcher->capture(
+			'order_cancelled',
+			$this->order_distinct_id( $order ),
+			array(
+				'order_id' => $order->get_id(),
+				'value'    => (float) $order->get_total(),
+				'currency' => $order->get_currency(),
 			)
 		);
 	}

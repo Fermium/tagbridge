@@ -21,6 +21,15 @@ final class SchemaTest extends TestCase {
 		$this->assertSame( 'product_added_to_cart', Schema::PRODUCT_ADDED_TO_CART );
 		$this->assertSame( 'checkout_started', Schema::CHECKOUT_STARTED );
 		$this->assertSame( 'order_completed', Schema::ORDER_COMPLETED );
+		$this->assertSame( 'product_list_viewed', Schema::PRODUCT_LIST_VIEWED );
+		$this->assertSame( 'products_searched', Schema::PRODUCTS_SEARCHED );
+		$this->assertSame( 'product_removed_from_cart', Schema::PRODUCT_REMOVED_FROM_CART );
+		$this->assertSame( 'cart_viewed', Schema::CART_VIEWED );
+		$this->assertSame( 'coupon_applied', Schema::COUPON_APPLIED );
+		$this->assertSame( 'coupon_removed', Schema::COUPON_REMOVED );
+		$this->assertSame( 'payment_failed', Schema::PAYMENT_FAILED );
+		$this->assertSame( 'order_refunded', Schema::ORDER_REFUNDED );
+		$this->assertSame( 'order_cancelled', Schema::ORDER_CANCELLED );
 	}
 
 	public function test_core_and_woo_events_partition_all_events() {
@@ -29,7 +38,7 @@ final class SchemaTest extends TestCase {
 			array_merge( Schema::core_events(), Schema::woo_events() ),
 			$all
 		);
-		$this->assertCount( 6, $all );
+		$this->assertCount( 15, $all );
 	}
 
 	public function test_keys_map_to_their_event_name() {

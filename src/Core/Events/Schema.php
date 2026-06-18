@@ -59,6 +59,69 @@ final class Schema {
 	const ORDER_COMPLETED = 'order_completed';
 
 	/**
+	 * A WooCommerce product list (shop, category, or tag archive) was viewed.
+	 *
+	 * @var string
+	 */
+	const PRODUCT_LIST_VIEWED = 'product_list_viewed';
+
+	/**
+	 * A search was performed (query + result count).
+	 *
+	 * @var string
+	 */
+	const PRODUCTS_SEARCHED = 'products_searched';
+
+	/**
+	 * A WooCommerce product was removed from the cart.
+	 *
+	 * @var string
+	 */
+	const PRODUCT_REMOVED_FROM_CART = 'product_removed_from_cart';
+
+	/**
+	 * The WooCommerce cart page was viewed.
+	 *
+	 * @var string
+	 */
+	const CART_VIEWED = 'cart_viewed';
+
+	/**
+	 * A coupon was applied to the cart.
+	 *
+	 * @var string
+	 */
+	const COUPON_APPLIED = 'coupon_applied';
+
+	/**
+	 * A coupon was removed from the cart.
+	 *
+	 * @var string
+	 */
+	const COUPON_REMOVED = 'coupon_removed';
+
+	/**
+	 * A WooCommerce order's payment failed.
+	 *
+	 * @var string
+	 */
+	const PAYMENT_FAILED = 'payment_failed';
+
+	/**
+	 * A WooCommerce order was refunded (fully or partially).
+	 *
+	 * @var string
+	 */
+	const ORDER_REFUNDED = 'order_refunded';
+
+	/**
+	 * A WooCommerce order was cancelled.
+	 *
+	 * @var string
+	 */
+	const ORDER_CANCELLED = 'order_cancelled';
+
+	/**
 	 * Core (non-commerce) event names, keyed by their settings key.
 	 *
 	 * @return array<string,string>
@@ -77,10 +140,19 @@ final class Schema {
 	 */
 	public static function woo_events() {
 		return array(
-			'product_viewed'        => self::PRODUCT_VIEWED,
-			'product_added_to_cart' => self::PRODUCT_ADDED_TO_CART,
-			'checkout_started'      => self::CHECKOUT_STARTED,
-			'order_completed'       => self::ORDER_COMPLETED,
+			'product_viewed'            => self::PRODUCT_VIEWED,
+			'product_list_viewed'       => self::PRODUCT_LIST_VIEWED,
+			'products_searched'         => self::PRODUCTS_SEARCHED,
+			'product_added_to_cart'     => self::PRODUCT_ADDED_TO_CART,
+			'product_removed_from_cart' => self::PRODUCT_REMOVED_FROM_CART,
+			'cart_viewed'               => self::CART_VIEWED,
+			'coupon_applied'            => self::COUPON_APPLIED,
+			'coupon_removed'            => self::COUPON_REMOVED,
+			'checkout_started'          => self::CHECKOUT_STARTED,
+			'order_completed'           => self::ORDER_COMPLETED,
+			'payment_failed'            => self::PAYMENT_FAILED,
+			'order_refunded'            => self::ORDER_REFUNDED,
+			'order_cancelled'           => self::ORDER_CANCELLED,
 		);
 	}
 

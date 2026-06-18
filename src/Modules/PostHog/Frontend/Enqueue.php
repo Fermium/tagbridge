@@ -101,12 +101,44 @@ final class Enqueue {
 			$config['persistence'] = 'memory';
 		}
 
+		// When session replay is on, mask form inputs by default and let sites add a
+		// text-masking selector for elements that render PII as text (e.g. a checkout
+		// review pane or order-confirmation address). Inputs are masked regardless;
+		// the selector covers the text that rrweb would otherwise record verbatim.
+		if ( ! empty( $client['session_recording'] ) ) {
+			$config['session_recording'] = array( 'maskAllInputs' => true );
+
+			$mask_selector = $this->mask_text_selector();
+			if ( '' !== $mask_selector ) {
+				$config['session_recording']['maskTextSelector'] = $mask_selector;
+			}
+		}
+
 		/**
 		 * Filter the posthog-js init configuration before it is printed.
 		 *
 		 * @param array<string,mixed> $config The configuration array.
 		 */
 		return (array) apply_filters( 'tagbridge_posthog_js_config', $config );
+	}
+
+	/**
+	 * CSS selector whose matching elements have their text masked in session
+	 * replay. The defaults cover common WooCommerce / CheckoutWC surfaces that
+	 * render a customer's name, email, or address as text (form inputs are masked
+	 * separately). Return an empty string to disable text masking.
+	 *
+	 * @return string
+	 */
+	private function mask_text_selector() {
+		$default = '.woocommerce-customer-details, .cfw-review-pane, .pac-container';
+
+		/**
+		 * Filter the session-replay text-masking selector.
+		 *
+		 * @param string $default Comma-separated CSS selector, or '' to disable.
+		 */
+		return (string) apply_filters( 'tagbridge_posthog_mask_text_selector', $default );
 	}
 
 	/**
