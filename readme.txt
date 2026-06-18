@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.5.0
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,7 +28,7 @@ Tagbridge is an independent project. It is not affiliated with, endorsed by, or 
 
 = Events sent to PostHog =
 
-Client-side (posthog-js, per the toggles above): $pageview, $autocapture, $heatmap, $exception, session-replay snapshots, and $identify.
+Client-side (posthog-js): $pageview, $autocapture, $heatmap, $exception, session-replay snapshots, $identify, and product_variant_selected (WooCommerce variation picks).
 
 Server-side (posthog-php), each individually toggleable:
 
@@ -89,6 +89,7 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 = WordPress actions the plugin hooks =
 
 * wp_head: print the posthog-js snippet
+* wp_enqueue_scripts: load the WooCommerce variant-tracking script on product pages
 * wp_login, user_register, wp_logout: the user_logged_in / user_registered / user_logged_out events (and identity on login/register)
 * template_redirect: product_viewed, product_list_viewed, products_searched, cart_viewed, checkout_viewed
 * woocommerce_add_to_cart, woocommerce_cart_item_removed
@@ -132,6 +133,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.6.0 =
+* Track product variant selections: a new tracking toggle that sends a product_variant_selected event when a shopper picks a WooCommerce variation (size, colour, etc.) on a product page, with the variation, price, and stock status.
+
 = 0.5.0 =
 * Three more events: checkout_viewed (WooCommerce checkout page view), product_review_submitted (approved WooCommerce review), and user_logged_out.
 
@@ -163,6 +167,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.6.0 =
+Adds a product_variant_selected event for WooCommerce variations.
 
 = 0.5.0 =
 Adds checkout_viewed, product_review_submitted, and user_logged_out events.

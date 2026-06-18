@@ -39,6 +39,7 @@ final class Settings {
 			'client'          => array(
 				'autocapture'       => true,
 				'heatmaps'          => true,
+				'track_variants'    => true,
 				'pageviews'         => true,
 				'session_recording' => false,
 				'person_profiles'   => 'identified_only',
@@ -252,6 +253,7 @@ final class Settings {
 			$raw_client                  = wp_unslash( $input['client'] );
 			$client['autocapture']       = ! empty( $raw_client['autocapture'] );
 			$client['heatmaps']          = ! empty( $raw_client['heatmaps'] );
+			$client['track_variants']    = ! empty( $raw_client['track_variants'] );
 			$client['pageviews']         = ! empty( $raw_client['pageviews'] );
 			$client['session_recording'] = ! empty( $raw_client['session_recording'] );
 			$client['cookieless']        = ! empty( $raw_client['cookieless'] );

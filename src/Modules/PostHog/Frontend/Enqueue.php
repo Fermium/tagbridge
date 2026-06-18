@@ -27,6 +27,39 @@ final class Enqueue {
 	public function register() {
 		// Early in the head so autocapture and pageview fire as soon as possible.
 		add_action( 'wp_head', array( $this, 'print_snippet' ), 1 );
+		// Front-end script that captures WooCommerce variant selections.
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_variations' ) );
+	}
+
+	/**
+	 * Enqueue the variant-tracking script on single product pages.
+	 *
+	 * Only loads when configured, the toggle is on, and we are on a product page
+	 * (where WooCommerce's variation form and jQuery are present).
+	 *
+	 * @return void
+	 */
+	public function enqueue_variations() {
+		if ( ! Settings::is_configured() ) {
+			return;
+		}
+
+		$client = Settings::client();
+		if ( empty( $client['track_variants'] ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'tagbridge-variations',
+			TAGBRIDGE_URL . 'assets/js/variations.js',
+			array( 'jquery' ),
+			TAGBRIDGE_VERSION,
+			true
+		);
 	}
 
 	/**

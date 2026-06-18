@@ -196,6 +196,13 @@ final class SettingsPanel {
 					);
 					$this->row(
 						'client',
+						'track_variants',
+						__( 'Track product variant selections', 'tagbridge' ),
+						__( 'WooCommerce: capture which variation (size, colour, etc.) a shopper picks on a product page.', 'tagbridge' ),
+						! empty( $client['track_variants'] )
+					);
+					$this->row(
+						'client',
 						'session_recording',
 						__( 'Record sessions', 'tagbridge' ),
 						__( 'Session replays. Heavier, so off by default.', 'tagbridge' ),
