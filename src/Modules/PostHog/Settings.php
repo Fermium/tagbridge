@@ -38,6 +38,7 @@ final class Settings {
 			'custom_host'     => '',
 			'client'          => array(
 				'autocapture'       => true,
+				'heatmaps'          => true,
 				'pageviews'         => true,
 				'session_recording' => false,
 				'person_profiles'   => 'identified_only',
@@ -234,6 +235,7 @@ final class Settings {
 		if ( isset( $input['client'] ) && is_array( $input['client'] ) ) {
 			$raw_client                  = wp_unslash( $input['client'] );
 			$client['autocapture']       = ! empty( $raw_client['autocapture'] );
+			$client['heatmaps']          = ! empty( $raw_client['heatmaps'] );
 			$client['pageviews']         = ! empty( $raw_client['pageviews'] );
 			$client['session_recording'] = ! empty( $raw_client['session_recording'] );
 			$client['cookieless']        = ! empty( $raw_client['cookieless'] );

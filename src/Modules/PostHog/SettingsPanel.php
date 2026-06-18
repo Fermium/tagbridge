@@ -170,6 +170,13 @@ final class SettingsPanel {
 					);
 					$this->row(
 						'client',
+						'heatmaps',
+						__( 'Heatmaps', 'tagbridge' ),
+						__( 'Click and scroll heatmaps. Also enable heatmaps in your PostHog project settings.', 'tagbridge' ),
+						! empty( $client['heatmaps'] )
+					);
+					$this->row(
+						'client',
 						'session_recording',
 						__( 'Record sessions', 'tagbridge' ),
 						__( 'Session replays. Heavier, so off by default.', 'tagbridge' ),

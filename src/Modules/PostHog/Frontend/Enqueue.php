@@ -91,6 +91,7 @@ final class Enqueue {
 			// Pin to a dated defaults bundle so PostHog behavior is stable across releases.
 			'defaults'                  => '2026-01-30',
 			'autocapture'               => (bool) $client['autocapture'],
+			'capture_heatmaps'          => (bool) $client['heatmaps'],
 			'capture_pageview'          => (bool) $client['pageviews'],
 			'disable_session_recording' => empty( $client['session_recording'] ),
 			'person_profiles'           => (string) $client['person_profiles'],

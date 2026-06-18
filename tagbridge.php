@@ -3,7 +3,7 @@
  * Plugin Name:       Tagbridge – Deep Integration for PostHog
  * Plugin URI:        https://github.com/0xdidi/tagbridge
  * Description:       Independent PostHog integration for WordPress. Connect your project, configure tracking, and send pageviews and events to PostHog. Not affiliated with PostHog.
- * Version:           0.3.0
+ * Version:           0.3.1
  * Requires at least: 5.8
  * Requires PHP:      8.2
  * Author:            Great Anthony
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Single source of truth for plugin metadata. Prefixed per coding standards.
-define( 'TAGBRIDGE_VERSION', '0.3.0' );
+define( 'TAGBRIDGE_VERSION', '0.3.1' );
 define( 'TAGBRIDGE_FILE', __FILE__ );
 define( 'TAGBRIDGE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TAGBRIDGE_URL', plugin_dir_url( __FILE__ ) );

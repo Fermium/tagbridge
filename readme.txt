@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,7 +21,7 @@ Tagbridge is an independent project. It is not affiliated with, endorsed by, or 
 * Connect to PostHog Cloud (US or EU) or your own self-hosted or reverse-proxy host.
 * Your project token is checked with a live test call before it is saved, so you know right away if it is correct.
 * Loads PostHog (posthog-js) from the host you configure, so self-hosted and reverse-proxy setups work without code.
-* Plain-language toggles for what gets captured: pageviews, autocapture (clicks and form interactions), session recording, and person profile mode.
+* Plain-language toggles for what gets captured: pageviews, autocapture (clicks and form interactions), heatmaps, session recording, and person profile mode.
 * Privacy-first cookieless mode that keeps visitor state in memory, so no PostHog cookie is set.
 * Identity: tie logged-in WordPress users to one PostHog person across anonymous and logged-in sessions, using a stable hashed identifier (never the raw user ID). You choose whether to identify logged-in users and which properties to send (email, name, role).
 * Server-side events: send key events (user logged in, user registered) from your own WordPress server, so they still arrive when a visitor's browser blocks tracking. Runs on your existing hosting, with a per-event on/off switch. A failed or slow PostHog request never affects your pages.
@@ -67,7 +67,7 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 == Screenshots ==
 
 1. Connect your PostHog project: paste the project token and choose your region. The key is checked with PostHog before it is saved.
-2. Once connected, choose what to track with plain-language toggles: pageviews, autocapture, session recording, person profiles, and privacy-first cookieless mode.
+2. Once connected, choose what to track with plain-language toggles: pageviews, autocapture, heatmaps, session recording, person profiles, and privacy-first cookieless mode.
 
 == External services ==
 
@@ -96,6 +96,10 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.3.1 =
+* Heatmaps: a new tracking toggle that turns on PostHog click and scroll heatmaps (also enable heatmaps in your PostHog project settings).
+* Renamed the connection field to "Project token" to match PostHog's wording (Settings, General, Project token).
+
 = 0.3.0 =
 * More WooCommerce events (each individually toggleable): product list viewed, products searched, removed from cart, cart viewed, coupon applied, coupon removed, payment failed, order refunded, and order cancelled — all server-side and stitched to the same person.
 * Session replay: when recording is on, form inputs are masked and a filterable text-masking selector (`tagbridge_posthog_mask_text_selector`) covers common WooCommerce / CheckoutWC surfaces that render a name, email, or address as text.
@@ -112,6 +116,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.3.1 =
+Adds a heatmaps toggle and clarifies the connection field label.
 
 = 0.3.0 =
 Adds nine more WooCommerce events and session-replay input/text masking. All new events are on by default and individually toggleable.
