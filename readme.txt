@@ -12,7 +12,7 @@ Independent PostHog integration for WordPress. Connect your project and send pag
 
 == Description ==
 
-Tagbridge is a simple, independent way to add PostHog to WordPress: PostHog for WordPress, without touching code. Enter your PostHog project token, choose your region, and Tagbridge loads PostHog on your site with the settings you pick.
+Tagbridge adds PostHog to a WordPress site without writing code. Enter your PostHog project token, choose your region, and it loads PostHog with the settings you pick.
 
 Tagbridge is an independent project. It is not affiliated with, endorsed by, or sponsored by PostHog. "PostHog" is a trademark of its respective owner and is used here only to describe what this plugin connects to.
 
@@ -87,21 +87,21 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 
 = WordPress actions the plugin hooks =
 
-* wp_head — print the posthog-js snippet
-* wp_login, user_register — identity, plus the user_logged_in / user_registered events
-* template_redirect — product_viewed, product_list_viewed, products_searched, cart_viewed
+* wp_head: print the posthog-js snippet
+* wp_login, user_register: identity, plus the user_logged_in / user_registered events
+* template_redirect: product_viewed, product_list_viewed, products_searched, cart_viewed
 * woocommerce_add_to_cart, woocommerce_cart_item_removed
 * woocommerce_applied_coupon, woocommerce_removed_coupon
 * woocommerce_checkout_order_processed, woocommerce_order_status_completed
 * woocommerce_order_status_failed, woocommerce_order_refunded, woocommerce_order_status_cancelled
-* shutdown — flush queued server-side events
-* admin_menu, admin_init, admin_enqueue_scripts, admin_notices, admin_post_* — the settings screen
+* shutdown: flush queued server-side events
+* admin_menu, admin_init, admin_enqueue_scripts, admin_notices, admin_post_*: the settings screen
 
 = Filters the plugin provides =
 
-* tagbridge_posthog_js_config — the posthog-js init config array, before it is printed.
-* tagbridge_posthog_mask_text_selector — the session-replay text-masking CSS selector (empty disables it).
-* tagbridge_module_manifest — the list of registered integration modules.
+* tagbridge_posthog_js_config: the posthog-js init config array, before it is printed.
+* tagbridge_posthog_mask_text_selector: the session-replay text-masking CSS selector (empty disables it).
+* tagbridge_module_manifest: the list of registered integration modules.
 
 == External services ==
 
@@ -139,7 +139,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 * Renamed the connection field to "Project token" to match PostHog's wording (Settings, General, Project token).
 
 = 0.3.0 =
-* More WooCommerce events (each individually toggleable): product list viewed, products searched, removed from cart, cart viewed, coupon applied, coupon removed, payment failed, order refunded, and order cancelled — all server-side and stitched to the same person.
+* More WooCommerce events (each individually toggleable): product list viewed, products searched, removed from cart, cart viewed, coupon applied, coupon removed, payment failed, order refunded, and order cancelled. All are server-side and stitched to the same person.
 * Session replay: when recording is on, form inputs are masked and a filterable text-masking selector (`tagbridge_posthog_mask_text_selector`) covers common WooCommerce / CheckoutWC surfaces that render a name, email, or address as text.
 
 = 0.2.1 =
