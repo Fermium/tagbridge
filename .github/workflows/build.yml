@@ -1,0 +1,53 @@
+name: Build
+
+# Builds the distributable plugin zip (bin/build-zip.sh: runtime files + a
+# --no-dev vendor dir, dev junk stripped). On a version tag it also attaches the
+# zip to the GitHub Release; on main / manual runs it uploads it as an artifact
+# so you can grab a current build to install on staging without cutting a tag.
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build plugin zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Don't ship a broken zip: the same unit suite CI runs must pass first.
+      - name: Unit tests (gate)
+        run: composer test:unit
+
+      - name: Build zip
+        run: bash bin/build-zip.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagbridge-plugin
+          path: dist/tagbridge.zip
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release
+        if: startsWith( github.ref, 'refs/tags/' )
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/tagbridge.zip
+          fail_on_unmatched_files: true
