@@ -25,6 +25,7 @@ Tagbridge is an independent project. It is not affiliated with, endorsed by, or 
 * Identity: logged-in users are tied to one PostHog person via a stable hashed identifier (not the raw user ID). Email, name, and role are individually optional.
 * Server-side events via posthog-php, each with an on/off toggle behind a master switch. Sent from the server, so an ad blocker does not drop them; a failed or slow request never affects page output.
 * Server-side PHP error tracking (opt-in): posthog-php installs chained exception/error handlers; captured errors carry the visitor's distinct ID.
+* WooCommerce (when active): the full commerce funnel as server-side events, plus client-side variant selections. Product, cart, and purchase events carry the SKU, categories, and attributes, and each completed order emits one purchase event per line item, so sales break down by SKU and attribute.
 
 = Events sent to PostHog =
 

@@ -9,13 +9,30 @@ This is the developer README. End-user documentation lives in `readme.txt`.
 
 ## Architecture
 
-Two layers with a hard line between them:
+Three layers, with a hard line between them:
 
-- **`src/Core/`** — platform-agnostic PHP with **zero WordPress function calls**.
-  Plain data in, plain data out (host resolution, the identity resolver). This is
-  the reusable heart of the plugin.
-- **`src/Platform/`** — WordPress glue. Adapts WordPress (hooks, options, users,
-  admin UI) to the Core.
+- **`src/Core/`** — platform-agnostic PHP with **zero WordPress function calls**:
+  host resolution, the event-name schema, the posthog-php client wrapper, and the
+  identity resolver. The reusable heart of the plugin.
+- **`src/Modules/`** — integrations. `Modules/PostHog/` is the PostHog
+  integration: the front-end snippet (`Frontend/Enqueue`), server-side listeners
+  (`Listeners/CoreEvents`, `Listeners/WooEvents`), the event `Dispatcher`,
+  identity, product metadata, and the settings + settings panel. Another
+  analytics tool would be added as a sibling module.
+- **`src/Platform/`** — WordPress glue: the admin settings shell, options
+  storage, admin notices, and the module registry that boots enabled modules.
+
+## Events
+
+- **Names:** server-side event names live in `src/Core/Events/Schema.php`.
+- **Server-side:** `Modules/PostHog/Listeners/{CoreEvents,WooEvents}` capture via
+  the `Dispatcher` and `Core/Events/ServerClient` (posthog-php). HPOS-safe and
+  flushed on `shutdown`; the WooCommerce listener only registers when WooCommerce
+  is active. `Modules/PostHog/ProductMeta` adds category/attribute context.
+- **Client-side:** the posthog-js snippet (`Frontend/Enqueue`) handles pageviews,
+  autocapture, heatmaps, session replay, and exceptions; `assets/js/variations.js`
+  captures `product_variant_selected` on product pages.
+- The full event and property list is in `readme.txt`.
 
 ## Requirements
 
@@ -48,13 +65,15 @@ bin/build-zip.sh    # produces dist/tagbridge.zip (production files only)
 
 ```
 tagbridge.php            Main plugin file: header, guards, bootstrap
-uninstall.php           Uninstall cleanup
-readme.txt              WordPress.org readme
-src/Core/               Platform-agnostic logic (no WP calls)
-src/Platform/           WordPress glue
-assets/                 Admin CSS/JS
-languages/              Translation template (.pot)
-tests/                  PHPUnit tests
+uninstall.php            Uninstall cleanup
+readme.txt               WordPress.org readme (user docs + full event list)
+src/Core/                Platform-agnostic logic (no WP calls)
+src/Modules/PostHog/     The PostHog integration (snippet, listeners, settings)
+src/Platform/            WordPress glue (admin shell, options, module registry)
+assets/                  Admin CSS/JS and the front-end variations script
+bin/build-zip.sh         Builds the distributable ZIP
+languages/               Translation template (.pot)
+tests/                   PHPUnit tests
 ```
 
 ## Security
