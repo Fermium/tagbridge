@@ -67,6 +67,7 @@ final class WooEvents {
 		add_action( 'template_redirect', array( $this, 'on_product_list_view' ) );
 		add_action( 'template_redirect', array( $this, 'on_search' ) );
 		add_action( 'template_redirect', array( $this, 'on_cart_view' ) );
+		add_action( 'template_redirect', array( $this, 'on_checkout_view' ) );
 		add_action( 'woocommerce_add_to_cart', array( $this, 'on_add_to_cart' ), 10, 6 );
 		add_action( 'woocommerce_cart_item_removed', array( $this, 'on_remove_from_cart' ), 10, 2 );
 		add_action( 'woocommerce_applied_coupon', array( $this, 'on_coupon_applied' ), 10, 1 );
@@ -76,6 +77,7 @@ final class WooEvents {
 		add_action( 'woocommerce_order_status_failed', array( $this, 'on_payment_failed' ), 10, 2 );
 		add_action( 'woocommerce_order_refunded', array( $this, 'on_order_refunded' ), 10, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'on_order_cancelled' ), 10, 2 );
+		add_action( 'comment_post', array( $this, 'on_product_review' ), 10, 3 );
 	}
 
 	/**
@@ -409,6 +411,67 @@ final class WooEvents {
 				'order_id' => $order->get_id(),
 				'value'    => (float) $order->get_total(),
 				'currency' => $order->get_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a view of the checkout page.
+	 *
+	 * @return void
+	 */
+	public function on_checkout_view() {
+		if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+			return;
+		}
+
+		// Skip the order-received / thank-you page — that is order_completed territory.
+		if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+			return;
+		}
+
+		$cart = function_exists( 'WC' ) ? WC()->cart : null;
+
+		$this->dispatcher->capture(
+			'checkout_viewed',
+			$this->visitor_distinct_id(),
+			array(
+				'item_count' => $cart ? (int) $cart->get_cart_contents_count() : null,
+				'value'      => $cart ? (float) $cart->get_cart_contents_total() : null,
+				'currency'   => get_woocommerce_currency(),
+			)
+		);
+	}
+
+	/**
+	 * Capture a WooCommerce product review submission.
+	 *
+	 * @param int        $comment_id       The new comment id.
+	 * @param int|string $comment_approved 1 if approved, 0 if pending, 'spam'.
+	 * @param array      $comment_data     The comment data array.
+	 * @return void
+	 */
+	public function on_product_review( $comment_id, $comment_approved, $comment_data ) {
+		// Only track approved reviews on product post types.
+		if ( 1 !== (int) $comment_approved ) {
+			return;
+		}
+
+		$post_id = isset( $comment_data['comment_post_ID'] ) ? (int) $comment_data['comment_post_ID'] : 0;
+		if ( ! $post_id || 'product' !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$rating  = get_comment_meta( $comment_id, 'rating', true );
+		$product = wc_get_product( $post_id );
+
+		$this->dispatcher->capture(
+			'product_review_submitted',
+			$this->visitor_distinct_id(),
+			array(
+				'product_id' => $post_id,
+				'name'       => $product ? $product->get_name() : '',
+				'rating'     => $rating ? (int) $rating : null,
 			)
 		);
 	}

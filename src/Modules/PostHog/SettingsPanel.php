@@ -311,6 +311,13 @@ final class SettingsPanel {
 						! empty( $server['user_registered'] )
 					);
 					$this->row(
+						'server_events',
+						'user_logged_out',
+						__( 'User logged out', 'tagbridge' ),
+						__( 'Capture when a user explicitly logs out.', 'tagbridge' ),
+						! empty( $server['user_logged_out'] )
+					);
+					$this->row(
 						'error_tracking',
 						'php',
 						__( 'Track PHP errors', 'tagbridge' ),
@@ -377,6 +384,13 @@ final class SettingsPanel {
 						);
 						$this->row(
 							'server_events',
+							'checkout_viewed',
+							__( 'Checkout viewed', 'tagbridge' ),
+							__( 'WooCommerce: the checkout page was loaded.', 'tagbridge' ),
+							! empty( $server['checkout_viewed'] )
+						);
+						$this->row(
+							'server_events',
 							'checkout_started',
 							__( 'Checkout started', 'tagbridge' ),
 							__( 'WooCommerce: a checkout was submitted.', 'tagbridge' ),
@@ -409,6 +423,13 @@ final class SettingsPanel {
 							__( 'Order cancelled', 'tagbridge' ),
 							__( 'WooCommerce: an order was cancelled.', 'tagbridge' ),
 							! empty( $server['order_cancelled'] )
+						);
+						$this->row(
+							'server_events',
+							'product_review_submitted',
+							__( 'Product review submitted', 'tagbridge' ),
+							__( 'WooCommerce: an approved product review was posted.', 'tagbridge' ),
+							! empty( $server['product_review_submitted'] )
 						);
 					} else {
 						?>

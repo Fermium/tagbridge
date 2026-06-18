@@ -42,6 +42,7 @@ final class CoreEvents {
 	public function register() {
 		add_action( 'wp_login', array( $this, 'on_login' ), 10, 2 );
 		add_action( 'user_register', array( $this, 'on_register' ), 10, 1 );
+		add_action( 'wp_logout', array( $this, 'on_logout' ), 10, 1 );
 	}
 
 	/**
@@ -85,6 +86,26 @@ final class CoreEvents {
 			'user_registered',
 			$distinct_id,
 			array( 'registration_source' => 'wordpress' )
+		);
+	}
+
+	/**
+	 * Handle a user logout.
+	 *
+	 * @param int $user_id The user id being logged out.
+	 * @return void
+	 */
+	public function on_logout( $user_id ) {
+		if ( ! $user_id ) {
+			return;
+		}
+
+		$distinct_id = Identity::stable_id_for_user( (int) $user_id );
+
+		$this->dispatcher->capture(
+			'user_logged_out',
+			$distinct_id,
+			array()
 		);
 	}
 

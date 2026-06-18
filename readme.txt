@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.4.1
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,11 +32,12 @@ Client-side (posthog-js, per the toggles above): $pageview, $autocapture, $heatm
 
 Server-side (posthog-php), each individually toggleable:
 
-* user_logged_in, user_registered
+* user_logged_in, user_registered, user_logged_out
 * product_viewed, product_list_viewed, products_searched
 * product_added_to_cart, product_removed_from_cart, cart_viewed
 * coupon_applied, coupon_removed
-* checkout_started, order_completed, payment_failed, order_refunded, order_cancelled
+* checkout_viewed, checkout_started, order_completed, payment_failed, order_refunded, order_cancelled
+* product_review_submitted
 
 WooCommerce events are registered only when WooCommerce is active. Order events include value and currency and resolve to the same person as the checkout session.
 
@@ -88,10 +89,11 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 = WordPress actions the plugin hooks =
 
 * wp_head: print the posthog-js snippet
-* wp_login, user_register: identity, plus the user_logged_in / user_registered events
-* template_redirect: product_viewed, product_list_viewed, products_searched, cart_viewed
+* wp_login, user_register, wp_logout: the user_logged_in / user_registered / user_logged_out events (and identity on login/register)
+* template_redirect: product_viewed, product_list_viewed, products_searched, cart_viewed, checkout_viewed
 * woocommerce_add_to_cart, woocommerce_cart_item_removed
 * woocommerce_applied_coupon, woocommerce_removed_coupon
+* comment_post: product_review_submitted
 * woocommerce_checkout_order_processed, woocommerce_order_status_completed
 * woocommerce_order_status_failed, woocommerce_order_refunded, woocommerce_order_status_cancelled
 * shutdown: flush queued server-side events
@@ -130,6 +132,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.5.0 =
+* Three more events: checkout_viewed (WooCommerce checkout page view), product_review_submitted (approved WooCommerce review), and user_logged_out.
+
 = 0.4.1 =
 * Move the settings screen under the WordPress Settings menu (Settings, Tagbridge) instead of a top-level sidebar item.
 
@@ -158,6 +163,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.5.0 =
+Adds checkout_viewed, product_review_submitted, and user_logged_out events.
 
 = 0.4.1 =
 The settings screen moved under Settings, Tagbridge.

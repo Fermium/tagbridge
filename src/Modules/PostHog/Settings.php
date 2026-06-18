@@ -58,6 +58,7 @@ final class Settings {
 				'enabled'                   => true,
 				'user_logged_in'            => true,
 				'user_registered'           => true,
+				'user_logged_out'           => true,
 				'product_viewed'            => true,
 				'product_list_viewed'       => true,
 				'products_searched'         => true,
@@ -66,11 +67,13 @@ final class Settings {
 				'cart_viewed'               => true,
 				'coupon_applied'            => true,
 				'coupon_removed'            => true,
+				'checkout_viewed'           => true,
 				'checkout_started'          => true,
 				'order_completed'           => true,
 				'payment_failed'            => true,
 				'order_refunded'            => true,
 				'order_cancelled'           => true,
+				'product_review_submitted'  => true,
 			),
 		);
 	}

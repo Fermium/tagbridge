@@ -122,6 +122,27 @@ final class Schema {
 	const ORDER_CANCELLED = 'order_cancelled';
 
 	/**
+	 * A visitor loaded the WooCommerce checkout page.
+	 *
+	 * @var string
+	 */
+	const CHECKOUT_VIEWED = 'checkout_viewed';
+
+	/**
+	 * A visitor submitted a WooCommerce product review.
+	 *
+	 * @var string
+	 */
+	const PRODUCT_REVIEW_SUBMITTED = 'product_review_submitted';
+
+	/**
+	 * A WordPress user explicitly logged out.
+	 *
+	 * @var string
+	 */
+	const USER_LOGGED_OUT = 'user_logged_out';
+
+	/**
 	 * Core (non-commerce) event names, keyed by their settings key.
 	 *
 	 * @return array<string,string>
@@ -130,6 +151,7 @@ final class Schema {
 		return array(
 			'user_logged_in'  => self::USER_LOGGED_IN,
 			'user_registered' => self::USER_REGISTERED,
+			'user_logged_out' => self::USER_LOGGED_OUT,
 		);
 	}
 
@@ -148,11 +170,13 @@ final class Schema {
 			'cart_viewed'               => self::CART_VIEWED,
 			'coupon_applied'            => self::COUPON_APPLIED,
 			'coupon_removed'            => self::COUPON_REMOVED,
+			'checkout_viewed'           => self::CHECKOUT_VIEWED,
 			'checkout_started'          => self::CHECKOUT_STARTED,
 			'order_completed'           => self::ORDER_COMPLETED,
 			'payment_failed'            => self::PAYMENT_FAILED,
 			'order_refunded'            => self::ORDER_REFUNDED,
 			'order_cancelled'           => self::ORDER_CANCELLED,
+			'product_review_submitted'  => self::PRODUCT_REVIEW_SUBMITTED,
 		);
 	}
 

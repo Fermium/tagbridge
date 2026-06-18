@@ -37,3 +37,9 @@ Thumbs.db
 # built with `composer install --no-dev` so the shipped plugin vendors
 # posthog-php and needs no Composer step at runtime.
 /vendor/
+.env
+
+# PostHog setup-wizard artifacts
+.posthog-events.json
+posthog-setup-report.md
+.claude/skills/
