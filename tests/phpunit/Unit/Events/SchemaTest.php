@@ -23,6 +23,7 @@ final class SchemaTest extends TestCase {
 		$this->assertSame( 'checkout_viewed', Schema::CHECKOUT_VIEWED );
 		$this->assertSame( 'checkout_started', Schema::CHECKOUT_STARTED );
 		$this->assertSame( 'order_completed', Schema::ORDER_COMPLETED );
+		$this->assertSame( 'product_purchased', Schema::PRODUCT_PURCHASED );
 		$this->assertSame( 'product_list_viewed', Schema::PRODUCT_LIST_VIEWED );
 		$this->assertSame( 'products_searched', Schema::PRODUCTS_SEARCHED );
 		$this->assertSame( 'product_removed_from_cart', Schema::PRODUCT_REMOVED_FROM_CART );
@@ -41,7 +42,7 @@ final class SchemaTest extends TestCase {
 			array_merge( Schema::core_events(), Schema::woo_events() ),
 			$all
 		);
-		$this->assertCount( 18, $all );
+		$this->assertCount( 19, $all );
 	}
 
 	public function test_keys_map_to_their_event_name() {

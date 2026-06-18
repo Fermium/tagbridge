@@ -412,6 +412,13 @@ final class SettingsPanel {
 						);
 						$this->row(
 							'server_events',
+							'product_purchased',
+							__( 'Product purchased', 'tagbridge' ),
+							__( 'WooCommerce: one event per line item in a completed order (SKU, variant, quantity, revenue).', 'tagbridge' ),
+							! empty( $server['product_purchased'] )
+						);
+						$this->row(
+							'server_events',
 							'payment_failed',
 							__( 'Payment failed', 'tagbridge' ),
 							__( 'WooCommerce: an order\'s payment failed.', 'tagbridge' ),

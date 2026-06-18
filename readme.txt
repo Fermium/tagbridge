@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.7.0
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,7 +36,7 @@ Server-side (posthog-php), each individually toggleable:
 * product_viewed, product_list_viewed, products_searched
 * product_added_to_cart, product_removed_from_cart, cart_viewed
 * coupon_applied, coupon_removed
-* checkout_viewed, checkout_started, order_completed, payment_failed, order_refunded, order_cancelled
+* checkout_viewed, checkout_started, order_completed, product_purchased, payment_failed, order_refunded, order_cancelled
 * product_review_submitted
 
 WooCommerce events are registered only when WooCommerce is active. Order events include value and currency and resolve to the same person as the checkout session.
@@ -133,6 +133,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.8.0 =
+* product_purchased: one event per line item in a completed order, with SKU, variant, quantity, line revenue, categories, and attributes - so sales break down by SKU and attribute, closing the want-to-bought loop.
+
 = 0.7.0 =
 * Attribute & SKU intent: product_viewed and product_added_to_cart now carry the product SKU, categories, and descriptive attributes (blade material, origin, etc.); add-to-cart and variant selection also carry the variation id, SKU, and chosen variant, so you can see which attributes and SKUs people want across the funnel.
 
@@ -170,6 +173,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.8.0 =
+Adds a per-line-item product_purchased event for SKU/attribute sales breakdowns.
 
 = 0.7.0 =
 Product events now include SKU, categories, and attributes for intent analysis.

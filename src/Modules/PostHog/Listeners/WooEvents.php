@@ -216,9 +216,11 @@ final class WooEvents {
 			return;
 		}
 
+		$distinct_id = $this->order_distinct_id( $order );
+
 		$this->dispatcher->capture(
 			'order_completed',
-			$this->order_distinct_id( $order ),
+			$distinct_id,
 			array(
 				'order_id'   => $order->get_id(),
 				'value'      => (float) $order->get_total(),
@@ -226,6 +228,32 @@ final class WooEvents {
 				'item_count' => $order->get_item_count(),
 			)
 		);
+
+		// One product_purchased per line item, so sales break down by SKU, variant,
+		// and attribute with per-item quantity and revenue.
+		foreach ( $order->get_items() as $item ) {
+			if ( ! $item instanceof \WC_Order_Item_Product ) {
+				continue;
+			}
+
+			$product    = $item->get_product();
+			$is_variant = $product && $product->is_type( 'variation' );
+			$parent     = $is_variant ? wc_get_product( $product->get_parent_id() ) : $product;
+
+			$props = array(
+				'order_id'     => $order->get_id(),
+				'product_id'   => (int) $item->get_product_id(),
+				'variation_id' => (int) $item->get_variation_id(),
+				'name'         => $item->get_name(),
+				'sku'          => $product ? $product->get_sku() : null,
+				'quantity'     => (int) $item->get_quantity(),
+				'line_total'   => (float) $item->get_total(),
+				'currency'     => $order->get_currency(),
+				'variant'      => $is_variant ? $this->readable_variation( $product->get_variation_attributes() ) : null,
+			) + ProductMeta::collect( $parent );
+
+			$this->dispatcher->capture( 'product_purchased', $distinct_id, $props );
+		}
 	}
 
 	/**

@@ -71,6 +71,7 @@ final class Settings {
 				'checkout_viewed'           => true,
 				'checkout_started'          => true,
 				'order_completed'           => true,
+				'product_purchased'         => true,
 				'payment_failed'            => true,
 				'order_refunded'            => true,
 				'order_cancelled'           => true,

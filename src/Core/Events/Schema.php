@@ -59,6 +59,13 @@ final class Schema {
 	const ORDER_COMPLETED = 'order_completed';
 
 	/**
+	 * A line item from a completed WooCommerce order (one event per product).
+	 *
+	 * @var string
+	 */
+	const PRODUCT_PURCHASED = 'product_purchased';
+
+	/**
 	 * A WooCommerce product list (shop, category, or tag archive) was viewed.
 	 *
 	 * @var string
@@ -173,6 +180,7 @@ final class Schema {
 			'checkout_viewed'           => self::CHECKOUT_VIEWED,
 			'checkout_started'          => self::CHECKOUT_STARTED,
 			'order_completed'           => self::ORDER_COMPLETED,
+			'product_purchased'         => self::PRODUCT_PURCHASED,
 			'payment_failed'            => self::PAYMENT_FAILED,
 			'order_refunded'            => self::ORDER_REFUNDED,
 			'order_cancelled'           => self::ORDER_CANCELLED,
