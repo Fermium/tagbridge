@@ -61,6 +61,8 @@ Yes. You need a PostHog project and its project token. PostHog offers a free tie
 
 Yes. Choose "Self-hosted or reverse proxy" and enter your host URL. PostHog loads from that host.
 
+We recommend PostHog's free managed reverse proxy: it routes events through a subdomain of your own domain so ad blockers do not drop them (typically 10-30% more events). Set it up at https://posthog.com/docs/advanced/proxy/managed-reverse-proxy and paste the subdomain as your host.
+
 = Will it set cookies? =
 
 By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mode" to keep visitor state in memory only, so no PostHog cookie is set.
@@ -98,6 +100,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 == Changelog ==
 
 = 0.4.0 =
+* Reverse proxy: the connection screen now recommends PostHog's free managed reverse proxy (with a link to the docs) and points the custom-host field at a proxy subdomain, so events get past ad blockers.
 * Error tracking: capture unhandled browser (JavaScript) errors out of the box, and optionally uncaught PHP exceptions and errors from your server (opt-in; installs a chained PHP error handler that does not replace existing ones). Server-side errors are stitched to the same person as your other events.
 
 = 0.3.1 =

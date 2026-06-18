@@ -123,6 +123,24 @@ final class SettingsPanel {
 							<option value="<?php echo esc_attr( Host::REGION_EU ); ?>" <?php selected( $region, Host::REGION_EU ); ?>><?php esc_html_e( 'EU cloud (eu.i.posthog.com)', 'tagbridge' ); ?></option>
 							<option value="<?php echo esc_attr( Host::REGION_CUSTOM ); ?>" <?php selected( $region, Host::REGION_CUSTOM ); ?>><?php esc_html_e( 'Self-hosted or reverse proxy', 'tagbridge' ); ?></option>
 						</select>
+						<p class="tagbridge-help tagbridge-help--field">
+							<?php
+							printf(
+								wp_kses(
+									/* translators: %s: URL of PostHog's managed reverse proxy documentation. */
+									__( 'Recommended: route events through your own domain with PostHog\'s free <a href="%s" target="_blank" rel="noopener noreferrer">managed reverse proxy</a> so ad blockers don\'t drop them (typically 10&#8211;30%% more events). Set it up in PostHog, then pick &#8220;Self-hosted or reverse proxy&#8221; and paste the subdomain below.', 'tagbridge' ),
+									array(
+										'a' => array(
+											'href'   => array(),
+											'target' => array(),
+											'rel'    => array(),
+										),
+									)
+								),
+								esc_url( 'https://posthog.com/docs/advanced/proxy/managed-reverse-proxy' )
+							);
+							?>
+						</p>
 					</div>
 
 					<div class="tagbridge-field" data-tagbridge-custom-host <?php echo $is_custom ? '' : 'hidden'; ?>>
@@ -135,10 +153,10 @@ final class SettingsPanel {
 							value="<?php echo esc_attr( $custom_host ); ?>"
 							spellcheck="false"
 							autocomplete="off"
-							placeholder="https://posthog.example.com"
+							placeholder="https://e.yourdomain.com"
 						/>
 						<p class="tagbridge-help tagbridge-help--field">
-							<?php esc_html_e( 'The full URL of your PostHog instance or reverse proxy, including https://.', 'tagbridge' ); ?>
+							<?php esc_html_e( 'Your reverse-proxy subdomain (e.g. from PostHog\'s managed reverse proxy) or a self-hosted PostHog URL, including https://.', 'tagbridge' ); ?>
 						</p>
 					</div>
 				</div>
