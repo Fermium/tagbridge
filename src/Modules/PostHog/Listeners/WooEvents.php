@@ -267,8 +267,8 @@ final class WooEvents {
 	/**
 	 * Capture a cart item removal.
 	 *
-	 * @param string         $cart_item_key Removed cart item key.
-	 * @param \WC_Cart|null  $cart          The cart instance.
+	 * @param string        $cart_item_key Removed cart item key.
+	 * @param \WC_Cart|null $cart          The cart instance.
 	 * @return void
 	 */
 	public function on_remove_from_cart( $cart_item_key, $cart = null ) {

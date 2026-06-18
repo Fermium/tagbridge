@@ -286,20 +286,20 @@ final class SettingsPanel {
 							__( 'WooCommerce: a product page was viewed.', 'tagbridge' ),
 							! empty( $server['product_viewed'] )
 						);
-					$this->row(
-						'server_events',
-						'product_list_viewed',
-						__( 'Product list viewed', 'tagbridge' ),
-						__( 'WooCommerce: a shop, category, or tag archive was viewed.', 'tagbridge' ),
-						! empty( $server['product_list_viewed'] )
-					);
-					$this->row(
-						'server_events',
-						'products_searched',
-						__( 'Products searched', 'tagbridge' ),
-						__( 'A search was performed, with the query and result count.', 'tagbridge' ),
-						! empty( $server['products_searched'] )
-					);
+						$this->row(
+							'server_events',
+							'product_list_viewed',
+							__( 'Product list viewed', 'tagbridge' ),
+							__( 'WooCommerce: a shop, category, or tag archive was viewed.', 'tagbridge' ),
+							! empty( $server['product_list_viewed'] )
+						);
+						$this->row(
+							'server_events',
+							'products_searched',
+							__( 'Products searched', 'tagbridge' ),
+							__( 'A search was performed, with the query and result count.', 'tagbridge' ),
+							! empty( $server['products_searched'] )
+						);
 						$this->row(
 							'server_events',
 							'product_added_to_cart',
@@ -307,34 +307,34 @@ final class SettingsPanel {
 							__( 'WooCommerce: a product was added to the cart.', 'tagbridge' ),
 							! empty( $server['product_added_to_cart'] )
 						);
-					$this->row(
-						'server_events',
-						'product_removed_from_cart',
-						__( 'Removed from cart', 'tagbridge' ),
-						__( 'WooCommerce: a product was removed from the cart.', 'tagbridge' ),
-						! empty( $server['product_removed_from_cart'] )
-					);
-					$this->row(
-						'server_events',
-						'cart_viewed',
-						__( 'Cart viewed', 'tagbridge' ),
-						__( 'WooCommerce: the cart page was viewed.', 'tagbridge' ),
-						! empty( $server['cart_viewed'] )
-					);
-					$this->row(
-						'server_events',
-						'coupon_applied',
-						__( 'Coupon applied', 'tagbridge' ),
-						__( 'WooCommerce: a coupon was applied to the cart.', 'tagbridge' ),
-						! empty( $server['coupon_applied'] )
-					);
-					$this->row(
-						'server_events',
-						'coupon_removed',
-						__( 'Coupon removed', 'tagbridge' ),
-						__( 'WooCommerce: a coupon was removed from the cart.', 'tagbridge' ),
-						! empty( $server['coupon_removed'] )
-					);
+						$this->row(
+							'server_events',
+							'product_removed_from_cart',
+							__( 'Removed from cart', 'tagbridge' ),
+							__( 'WooCommerce: a product was removed from the cart.', 'tagbridge' ),
+							! empty( $server['product_removed_from_cart'] )
+						);
+						$this->row(
+							'server_events',
+							'cart_viewed',
+							__( 'Cart viewed', 'tagbridge' ),
+							__( 'WooCommerce: the cart page was viewed.', 'tagbridge' ),
+							! empty( $server['cart_viewed'] )
+						);
+						$this->row(
+							'server_events',
+							'coupon_applied',
+							__( 'Coupon applied', 'tagbridge' ),
+							__( 'WooCommerce: a coupon was applied to the cart.', 'tagbridge' ),
+							! empty( $server['coupon_applied'] )
+						);
+						$this->row(
+							'server_events',
+							'coupon_removed',
+							__( 'Coupon removed', 'tagbridge' ),
+							__( 'WooCommerce: a coupon was removed from the cart.', 'tagbridge' ),
+							! empty( $server['coupon_removed'] )
+						);
 						$this->row(
 							'server_events',
 							'checkout_started',
@@ -349,27 +349,27 @@ final class SettingsPanel {
 							__( 'WooCommerce: an order completed, with value and currency.', 'tagbridge' ),
 							! empty( $server['order_completed'] )
 						);
-					$this->row(
-						'server_events',
-						'payment_failed',
-						__( 'Payment failed', 'tagbridge' ),
-						__( 'WooCommerce: an order\'s payment failed.', 'tagbridge' ),
-						! empty( $server['payment_failed'] )
-					);
-					$this->row(
-						'server_events',
-						'order_refunded',
-						__( 'Order refunded', 'tagbridge' ),
-						__( 'WooCommerce: an order was refunded, fully or partially.', 'tagbridge' ),
-						! empty( $server['order_refunded'] )
-					);
-					$this->row(
-						'server_events',
-						'order_cancelled',
-						__( 'Order cancelled', 'tagbridge' ),
-						__( 'WooCommerce: an order was cancelled.', 'tagbridge' ),
-						! empty( $server['order_cancelled'] )
-					);
+						$this->row(
+							'server_events',
+							'payment_failed',
+							__( 'Payment failed', 'tagbridge' ),
+							__( 'WooCommerce: an order\'s payment failed.', 'tagbridge' ),
+							! empty( $server['payment_failed'] )
+						);
+						$this->row(
+							'server_events',
+							'order_refunded',
+							__( 'Order refunded', 'tagbridge' ),
+							__( 'WooCommerce: an order was refunded, fully or partially.', 'tagbridge' ),
+							! empty( $server['order_refunded'] )
+						);
+						$this->row(
+							'server_events',
+							'order_cancelled',
+							__( 'Order cancelled', 'tagbridge' ),
+							__( 'WooCommerce: an order was cancelled.', 'tagbridge' ),
+							! empty( $server['order_cancelled'] )
+						);
 					} else {
 						?>
 						<p class="tagbridge-help tagbridge-help--field">
