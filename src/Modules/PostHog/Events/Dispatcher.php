@@ -13,6 +13,7 @@ namespace Tagbridge\Modules\PostHog\Events;
 
 use Tagbridge\Core\Events\Schema;
 use Tagbridge\Core\Events\ServerClient;
+use Tagbridge\Modules\PostHog\Identity;
 use Tagbridge\Modules\PostHog\Settings;
 
 /**
@@ -49,8 +50,23 @@ final class Dispatcher {
 			return null;
 		}
 
+		$error_opts = array();
+		if ( ! empty( Settings::error_tracking()['php'] ) ) {
+			$error_opts = array(
+				'enabled'          => true,
+				'capture_errors'   => true,
+				'context_provider' => static function () {
+					$resolved = Identity::server_distinct_id();
+					return array(
+						'distinctId' => '' !== $resolved['distinct_id'] ? $resolved['distinct_id'] : null,
+						'properties' => array(),
+					);
+				},
+			);
+		}
+
 		$client = new ServerClient();
-		if ( ! $client->init( Settings::project_api_key(), Settings::host() ) ) {
+		if ( ! $client->init( Settings::project_api_key(), Settings::host(), $error_opts ) ) {
 			return null;
 		}
 
@@ -60,6 +76,16 @@ final class Dispatcher {
 		add_action( 'shutdown', array( $this, 'flush' ), 100 );
 
 		return $this->client;
+	}
+
+	/**
+	 * Eagerly initialize the client. When server-side error tracking is on this
+	 * installs PostHog's PHP error handlers early, before errors can occur.
+	 *
+	 * @return void
+	 */
+	public function boot() {
+		$this->client();
 	}
 
 	/**

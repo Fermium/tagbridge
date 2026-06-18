@@ -97,6 +97,11 @@ final class Enqueue {
 			'person_profiles'           => (string) $client['person_profiles'],
 		);
 
+		// Browser error tracking: posthog-js autocaptures unhandled JS exceptions.
+		if ( ! empty( Settings::error_tracking()['javascript'] ) ) {
+			$config['capture_exceptions'] = true;
+		}
+
 		// Cookieless mode: keep all state in memory so no PostHog cookie is set.
 		if ( ! empty( $client['cookieless'] ) ) {
 			$config['persistence'] = 'memory';

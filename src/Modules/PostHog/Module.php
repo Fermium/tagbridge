@@ -81,6 +81,12 @@ final class Module implements ConfigurableModule {
 		$dispatcher = new Dispatcher();
 		( new CoreEvents( $dispatcher ) )->register();
 		( new WooEvents( $dispatcher ) )->register();
+
+		// Install PostHog's PHP error handlers early when server-side error tracking
+		// is enabled, so uncaught errors from here on are captured.
+		if ( ! empty( Settings::error_tracking()['php'] ) ) {
+			$dispatcher->boot();
+		}
 	}
 
 	/**

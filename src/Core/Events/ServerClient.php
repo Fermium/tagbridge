@@ -36,22 +36,31 @@ final class ServerClient {
 	/**
 	 * Initialize the PostHog client with the project key and host.
 	 *
-	 * @param string $api_key Project API key.
-	 * @param string $host    Base host URL.
+	 * @param string              $api_key        Project API key.
+	 * @param string              $host           Base host URL.
+	 * @param array<string,mixed> $error_tracking Optional error-tracking config: enabled,
+	 *                                            capture_errors, and an optional context_provider
+	 *                                            callable returning array{distinctId,properties}.
 	 * @return bool Whether initialization succeeded.
 	 */
-	public function init( $api_key, $host ) {
+	public function init( $api_key, $host, array $error_tracking = array() ) {
 		if ( '' === (string) $api_key || ! class_exists( '\PostHog\PostHog' ) ) {
 			return false;
 		}
 
-		try {
-			PostHog::init(
-				(string) $api_key,
-				array(
-					'host' => (string) $host,
-				)
+		$options = array( 'host' => (string) $host );
+		if ( ! empty( $error_tracking['enabled'] ) ) {
+			$options['error_tracking'] = array(
+				'enabled'        => true,
+				'capture_errors' => ! empty( $error_tracking['capture_errors'] ),
 			);
+			if ( isset( $error_tracking['context_provider'] ) && is_callable( $error_tracking['context_provider'] ) ) {
+				$options['error_tracking']['context_provider'] = $error_tracking['context_provider'];
+			}
+		}
+
+		try {
+			PostHog::init( (string) $api_key, $options );
 			$this->initialized = true;
 		} catch ( \Throwable $e ) {
 			$this->last_error  = $e->getMessage();

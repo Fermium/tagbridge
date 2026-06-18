@@ -64,6 +64,7 @@ final class SettingsPanel {
 		$identity    = Settings::identity();
 		$server      = Settings::server_events();
 		$woo_active  = WooEvents::woocommerce_active();
+		$error       = Settings::error_tracking();
 		$is_custom   = Host::REGION_CUSTOM === $region;
 		?>
 		<nav class="tagbridge-tabs" role="tablist" aria-label="<?php esc_attr_e( 'PostHog settings', 'tagbridge' ); ?>">
@@ -189,6 +190,13 @@ final class SettingsPanel {
 						__( 'Keep visitor state in memory; no PostHog cookie.', 'tagbridge' ),
 						! empty( $client['cookieless'] )
 					);
+					$this->row(
+						'error_tracking',
+						'javascript',
+						__( 'Track JavaScript errors', 'tagbridge' ),
+						__( 'Capture unhandled browser errors to PostHog error tracking.', 'tagbridge' ),
+						! empty( $error['javascript'] )
+					);
 					?>
 					<div class="tagbridge-row tagbridge-row--static">
 						<span class="tagbridge-row__text">
@@ -283,6 +291,13 @@ final class SettingsPanel {
 						__( 'User registered', 'tagbridge' ),
 						__( 'Capture when a new account is created.', 'tagbridge' ),
 						! empty( $server['user_registered'] )
+					);
+					$this->row(
+						'error_tracking',
+						'php',
+						__( 'Track PHP errors', 'tagbridge' ),
+						__( 'Send uncaught PHP exceptions and errors from your server. Installs a PHP error handler (chained, not replacing existing ones).', 'tagbridge' ),
+						! empty( $error['php'] )
 					);
 
 					if ( $woo_active ) {

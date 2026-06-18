@@ -50,6 +50,10 @@ final class Settings {
 				'send_name'          => true,
 				'send_role'          => true,
 			),
+			'error_tracking'  => array(
+				'javascript' => true,
+				'php'        => false,
+			),
 			'server_events'   => array(
 				'enabled'                   => true,
 				'user_logged_in'            => true,
@@ -86,7 +90,7 @@ final class Settings {
 		$merged   = array_merge( $defaults, $stored );
 
 		// Deep-merge each known sub-array so partial stored data keeps defaults.
-		foreach ( array( 'client', 'identity', 'server_events' ) as $group ) {
+		foreach ( array( 'client', 'identity', 'error_tracking', 'server_events' ) as $group ) {
 			$merged[ $group ] = array_merge(
 				$defaults[ $group ],
 				isset( $stored[ $group ] ) && is_array( $stored[ $group ] ) ? $stored[ $group ] : array()
@@ -182,6 +186,15 @@ final class Settings {
 	}
 
 	/**
+	 * The error-tracking configuration sub-array.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public static function error_tracking() {
+		return (array) self::all()['error_tracking'];
+	}
+
+	/**
 	 * Whether a specific server-side event is enabled (master + per-event).
 	 *
 	 * @param string $key Event settings key (e.g. 'order_completed').
@@ -269,6 +282,15 @@ final class Settings {
 				$server[ $event_key ] = ! empty( $raw_server[ $event_key ] );
 			}
 			$current['server_events'] = $server;
+		}
+
+		// Error-tracking toggles (JS exceptions in the browser, PHP errors on the server).
+		if ( isset( $input['error_tracking'] ) && is_array( $input['error_tracking'] ) ) {
+			$raw_error                 = wp_unslash( $input['error_tracking'] );
+			$error                     = $current['error_tracking'];
+			$error['javascript']       = ! empty( $raw_error['javascript'] );
+			$error['php']              = ! empty( $raw_error['php'] );
+			$current['error_tracking'] = $error;
 		}
 
 		return $current;
