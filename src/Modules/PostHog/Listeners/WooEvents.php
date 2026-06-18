@@ -15,6 +15,7 @@ namespace Tagbridge\Modules\PostHog\Listeners;
 
 use Tagbridge\Modules\PostHog\Events\Dispatcher;
 use Tagbridge\Modules\PostHog\Identity;
+use Tagbridge\Modules\PostHog\ProductMeta;
 
 /**
  * Listens for WooCommerce commerce events.
@@ -101,33 +102,72 @@ final class WooEvents {
 			array(
 				'product_id' => $product->get_id(),
 				'name'       => $product->get_name(),
+				'sku'        => $product->get_sku(),
 				'price'      => (float) $product->get_price(),
 				'currency'   => get_woocommerce_currency(),
-			)
+			) + ProductMeta::collect( $product )
 		);
 	}
 
 	/**
-	 * Capture an add-to-cart.
+	 * Capture an add-to-cart, including the specific SKU/variant being added.
 	 *
 	 * @param string $cart_item_key Cart item key.
 	 * @param int    $product_id    Product id.
 	 * @param int    $quantity      Quantity.
+	 * @param int    $variation_id  Variation id (0 for simple products).
+	 * @param array  $variation     Chosen variation attributes (slug values).
 	 * @return void
 	 */
-	public function on_add_to_cart( $cart_item_key, $product_id, $quantity ) {
+	public function on_add_to_cart( $cart_item_key, $product_id, $quantity, $variation_id = 0, $variation = array() ) {
 		$product = wc_get_product( $product_id );
 
-		$this->dispatcher->capture(
-			'product_added_to_cart',
-			$this->visitor_distinct_id(),
-			array(
-				'product_id' => (int) $product_id,
-				'name'       => $product ? $product->get_name() : '',
-				'quantity'   => (int) $quantity,
-				'currency'   => get_woocommerce_currency(),
-			)
+		$props = array(
+			'product_id' => (int) $product_id,
+			'name'       => $product ? $product->get_name() : '',
+			'quantity'   => (int) $quantity,
+			'currency'   => get_woocommerce_currency(),
 		);
+
+		// The exact SKU/variant added — the strongest "which SKU do people want" signal.
+		if ( $variation_id ) {
+			$variation_product     = wc_get_product( $variation_id );
+			$props['variation_id'] = (int) $variation_id;
+			$props['sku']          = $variation_product ? $variation_product->get_sku() : null;
+			$props['variant']      = $this->readable_variation( $variation );
+		} elseif ( $product ) {
+			$props['sku'] = $product->get_sku();
+		}
+
+		if ( $product ) {
+			$props += ProductMeta::collect( $product );
+		}
+
+		$this->dispatcher->capture( 'product_added_to_cart', $this->visitor_distinct_id(), $props );
+	}
+
+	/**
+	 * Turn a chosen-variation array (attribute_pa_size => m) into a readable
+	 * string (size: m), or null when empty.
+	 *
+	 * @param array $variation Chosen variation attributes.
+	 * @return string|null
+	 */
+	private function readable_variation( $variation ) {
+		if ( ! is_array( $variation ) || empty( $variation ) ) {
+			return null;
+		}
+
+		$parts = array();
+		foreach ( $variation as $key => $value ) {
+			if ( '' === (string) $value ) {
+				continue;
+			}
+			$key     = preg_replace( '/^attribute_(pa_)?/', '', (string) $key );
+			$parts[] = $key . ': ' . $value;
+		}
+
+		return $parts ? implode( ', ', $parts ) : null;
 	}
 
 	/**

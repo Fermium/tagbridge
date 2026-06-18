@@ -5,7 +5,8 @@
  * event to PostHog when a shopper picks a complete variation (size, colour, and
  * so on). Works with variation dropdowns and swatch plugins, which sync the same
  * underlying selects. Requires jQuery, which WooCommerce loads on variable
- * product pages.
+ * product pages. Product category and descriptive attributes are localized by
+ * the server into window.tagbridgePostHogProduct.
  */
 ( function () {
 	'use strict';
@@ -34,13 +35,17 @@
 				} );
 
 				var titleEl = document.querySelector( '.product_title' );
+				var meta = window.tagbridgePostHogProduct || {};
 
 				window.posthog.capture( 'product_variant_selected', {
 					product_id: $form.data( 'product_id' ) || null,
 					product_name: titleEl ? titleEl.textContent.trim() : null,
 					variation_id: variation ? variation.variation_id : null,
+					sku: variation ? variation.sku : null,
 					price: variation ? variation.display_price : null,
 					in_stock: variation ? variation.is_in_stock : null,
+					categories: meta.categories || null,
+					product_attributes: meta.attributes || null,
 					variant: Object.keys( attributes ).map( function ( k ) {
 						return k + ': ' + attributes[ k ];
 					} ).join( ', ' ),

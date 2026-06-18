@@ -12,6 +12,7 @@
 namespace Tagbridge\Modules\PostHog\Frontend;
 
 use Tagbridge\Modules\PostHog\Identity;
+use Tagbridge\Modules\PostHog\ProductMeta;
 use Tagbridge\Modules\PostHog\Settings;
 
 /**
@@ -60,6 +61,15 @@ final class Enqueue {
 			TAGBRIDGE_VERSION,
 			true
 		);
+
+		// Pass the product's category + descriptive attributes so variant
+		// selections carry attribute-level context (blade material, origin, etc.).
+		if ( function_exists( 'wc_get_product' ) ) {
+			$meta = ProductMeta::collect( wc_get_product( get_queried_object_id() ) );
+			if ( ! empty( $meta ) ) {
+				wp_localize_script( 'tagbridge-variations', 'tagbridgePostHogProduct', $meta );
+			}
+		}
 	}
 
 	/**

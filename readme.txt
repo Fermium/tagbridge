@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.6.0
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.7.0 =
+* Attribute & SKU intent: product_viewed and product_added_to_cart now carry the product SKU, categories, and descriptive attributes (blade material, origin, etc.); add-to-cart and variant selection also carry the variation id, SKU, and chosen variant, so you can see which attributes and SKUs people want across the funnel.
+
 = 0.6.0 =
 * Track product variant selections: a new tracking toggle that sends a product_variant_selected event when a shopper picks a WooCommerce variation (size, colour, etc.) on a product page, with the variation, price, and stock status.
 
@@ -167,6 +170,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.7.0 =
+Product events now include SKU, categories, and attributes for intent analysis.
 
 = 0.6.0 =
 Adds a product_variant_selected event for WooCommerce variations.
