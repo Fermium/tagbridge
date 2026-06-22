@@ -30,6 +30,13 @@ final class WooEvents {
 	const ORDER_DISTINCT_ID_META = '_tagbridge_distinct_id';
 
 	/**
+	 * Order meta flag marking that the purchase event has been sent.
+	 *
+	 * @var string
+	 */
+	const ORDER_PURCHASE_SENT_META = '_tagbridge_purchase_sent';
+
+	/**
 	 * The event dispatcher.
 	 *
 	 * @var Dispatcher
@@ -73,8 +80,16 @@ final class WooEvents {
 		add_action( 'woocommerce_cart_item_removed', array( $this, 'on_remove_from_cart' ), 10, 2 );
 		add_action( 'woocommerce_applied_coupon', array( $this, 'on_coupon_applied' ), 10, 1 );
 		add_action( 'woocommerce_removed_coupon', array( $this, 'on_coupon_removed' ), 10, 1 );
-		add_action( 'woocommerce_checkout_order_processed', array( $this, 'on_checkout' ), 10, 3 );
-		add_action( 'woocommerce_order_status_completed', array( $this, 'on_order_completed' ), 10, 1 );
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'on_order_placed' ), 10, 3 );
+		// Purchase = payment received, fired exactly once per order. Payment
+		// capture plus every status WooCommerce treats as paid — including custom
+		// paid/fulfillment statuses a plugin registers (e.g. Advanced Shipment
+		// Tracking's "shipped"). Stores without those statuses just get the
+		// defaults (processing, completed), so nothing breaks.
+		add_action( 'woocommerce_payment_complete', array( $this, 'on_order_paid' ), 10, 1 );
+		foreach ( $this->purchase_order_statuses() as $cfw_status ) {
+			add_action( 'woocommerce_order_status_' . $cfw_status, array( $this, 'on_order_paid' ), 10, 1 );
+		}
 		add_action( 'woocommerce_order_status_failed', array( $this, 'on_payment_failed' ), 10, 2 );
 		add_action( 'woocommerce_order_refunded', array( $this, 'on_order_refunded' ), 10, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'on_order_cancelled' ), 10, 2 );
@@ -171,14 +186,15 @@ final class WooEvents {
 	}
 
 	/**
-	 * Capture checkout submission and remember the distinct id on the order.
+	 * Capture order placement (checkout submitted) and remember the distinct
+	 * id on the order so the later purchase event resolves to the same person.
 	 *
 	 * @param int       $order_id    Order id.
 	 * @param array     $posted_data Posted checkout data.
 	 * @param \WC_Order $order      The order.
 	 * @return void
 	 */
-	public function on_checkout( $order_id, $posted_data, $order = null ) {
+	public function on_order_placed( $order_id, $posted_data, $order = null ) {
 		if ( ! $order instanceof \WC_Order ) {
 			$order = wc_get_order( $order_id );
 		}
@@ -193,7 +209,7 @@ final class WooEvents {
 		$order->save();
 
 		$this->dispatcher->capture(
-			'checkout_started',
+			'order_placed',
 			$distinct_id,
 			array(
 				'order_id'   => $order->get_id(),
@@ -205,16 +221,23 @@ final class WooEvents {
 	}
 
 	/**
-	 * Capture a completed order.
+	 * Capture a paid order (purchase) exactly once, at payment time.
 	 *
 	 * @param int $order_id Order id.
 	 * @return void
 	 */
-	public function on_order_completed( $order_id ) {
+	public function on_order_paid( $order_id ) {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
 			return;
 		}
+
+		// Send the purchase exactly once, no matter how many paid/status hooks fire.
+		if ( '' !== (string) $order->get_meta( self::ORDER_PURCHASE_SENT_META ) ) {
+			return;
+		}
+		$order->update_meta_data( self::ORDER_PURCHASE_SENT_META, current_time( 'mysql', true ) );
+		$order->save();
 
 		$distinct_id = $this->order_distinct_id( $order );
 
@@ -542,6 +565,45 @@ final class WooEvents {
 				'rating'     => $rating ? (int) $rating : null,
 			)
 		);
+	}
+
+	/**
+	 * Order statuses that represent a completed purchase.
+	 *
+	 * Starts from WooCommerce's own paid statuses (processing + completed, plus
+	 * any custom paid status a plugin registers). Also includes common
+	 * fulfillment statuses such as "shipped" — but only when that status is
+	 * actually registered on this site, so stores without it are unaffected.
+	 * Filterable via `tagbridge_purchase_order_statuses` for full control.
+	 *
+	 * @return string[] Unprefixed status keys (e.g. 'processing', 'shipped').
+	 */
+	private function purchase_order_statuses() {
+		$statuses = function_exists( 'wc_get_is_paid_statuses' )
+			? (array) wc_get_is_paid_statuses()
+			: array( 'processing', 'completed' );
+
+		// Pick up fulfillment statuses that imply a paid order, when present.
+		if ( function_exists( 'wc_get_order_statuses' ) ) {
+			$registered = array_keys( wc_get_order_statuses() ); // e.g. 'wc-processing', 'wc-shipped'.
+			foreach ( array( 'shipped', 'partially-shipped', 'partial-shipment' ) as $candidate ) {
+				if ( in_array( 'wc-' . $candidate, $registered, true ) ) {
+					$statuses[] = $candidate;
+				}
+			}
+		}
+
+		/**
+		 * Filter the order statuses Tagbridge treats as a purchase.
+		 *
+		 * Statuses are unprefixed (no 'wc-'). The purchase event is de-duplicated
+		 * per order, so adding statuses here is safe.
+		 *
+		 * @param string[] $statuses Status keys.
+		 */
+		$statuses = (array) apply_filters( 'tagbridge_purchase_order_statuses', $statuses );
+
+		return array_values( array_unique( array_map( 'strval', $statuses ) ) );
 	}
 
 	/**

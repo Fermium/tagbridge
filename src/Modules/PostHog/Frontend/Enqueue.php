@@ -30,6 +30,8 @@ final class Enqueue {
 		add_action( 'wp_head', array( $this, 'print_snippet' ), 1 );
 		// Front-end script that captures WooCommerce variant selections.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_variations' ) );
+		// Capture cart_viewed when CheckoutWC's side-cart opens (no cart page).
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_side_cart_tracking' ) );
 	}
 
 	/**
@@ -70,6 +72,49 @@ final class Enqueue {
 				wp_localize_script( 'tagbridge-variations', 'tagbridgePostHogProduct', $meta );
 			}
 		}
+	}
+
+	/**
+	 * Enqueue the side-cart cart_viewed tracker.
+	 *
+	 * CheckoutWC replaces the cart page with a slide-out side-cart, so the
+	 * server-side cart_viewed (which needs a cart page) never fires. This small
+	 * script sends cart_viewed when the side-cart opens. Loads only when the
+	 * plugin is configured, the cart_viewed event is enabled, and CheckoutWC is
+	 * active, so non-CheckoutWC sites are unaffected.
+	 *
+	 * @return void
+	 */
+	public function enqueue_side_cart_tracking() {
+		if ( ! Settings::is_configured() ) {
+			return;
+		}
+
+		// Reuse the cart_viewed event toggle — same logical event, client transport.
+		if ( ! Settings::is_server_event_enabled( 'cart_viewed' ) ) {
+			return;
+		}
+
+		// Only when CheckoutWC is active; its template helpers are a stable signal.
+		if ( ! function_exists( 'cfw_is_checkout' ) ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'tagbridge-side-cart',
+			TAGBRIDGE_URL . 'assets/js/side-cart.js',
+			array(),
+			TAGBRIDGE_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			'tagbridge-side-cart',
+			'tagbridgeSideCart',
+			array(
+				'currency' => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : '',
+			)
+		);
 	}
 
 	/**

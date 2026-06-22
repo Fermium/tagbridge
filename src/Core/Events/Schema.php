@@ -45,11 +45,11 @@ final class Schema {
 	const PRODUCT_ADDED_TO_CART = 'product_added_to_cart';
 
 	/**
-	 * A WooCommerce checkout was submitted (order created).
+	 * A WooCommerce order was placed (checkout submitted / order created).
 	 *
 	 * @var string
 	 */
-	const CHECKOUT_STARTED = 'checkout_started';
+	const ORDER_PLACED = 'order_placed';
 
 	/**
 	 * A WooCommerce order reached the completed status.
@@ -178,7 +178,7 @@ final class Schema {
 			'coupon_applied'            => self::COUPON_APPLIED,
 			'coupon_removed'            => self::COUPON_REMOVED,
 			'checkout_viewed'           => self::CHECKOUT_VIEWED,
-			'checkout_started'          => self::CHECKOUT_STARTED,
+			'order_placed'              => self::ORDER_PLACED,
 			'order_completed'           => self::ORDER_COMPLETED,
 			'product_purchased'         => self::PRODUCT_PURCHASED,
 			'payment_failed'            => self::PAYMENT_FAILED,

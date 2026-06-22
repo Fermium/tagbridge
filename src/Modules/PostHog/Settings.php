@@ -69,7 +69,7 @@ final class Settings {
 				'coupon_applied'            => true,
 				'coupon_removed'            => true,
 				'checkout_viewed'           => true,
-				'checkout_started'          => true,
+				'order_placed'              => true,
 				'order_completed'           => true,
 				'product_purchased'         => true,
 				'payment_failed'            => true,

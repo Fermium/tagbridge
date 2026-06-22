@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.8.1
+Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,11 @@ No analytics are sent until you enter a PostHog project token and connect. You c
 You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Support for the WordPress Consent API is planned for a future release.
 
 == Changelog ==
+
+= 0.9.0 =
+* WooCommerce purchases now fire when payment is received (woocommerce_payment_complete plus every paid status from wc_get_is_paid_statuses()), not only on the "completed" status. Stores that use a custom terminal status such as "shipped" or leave paid orders in "processing" no longer lose purchase/revenue events. The purchase is de-duplicated per order and adapts to each site; filterable via `tagbridge_purchase_order_statuses`.
+* Renamed the order-creation event `checkout_started` to `order_placed` to match what it measures (it fires when the order is created at checkout submission), giving a correct, monotonic funnel: product viewed -> added to cart -> checkout viewed -> order placed -> order completed.
+* Added client-side `cart_viewed` capture for CheckoutWC's slide-out side-cart (which has no cart page), loaded only when CheckoutWC is active so other sites are unaffected.
 
 = 0.8.1 =
 * Documentation: updated the developer README (three-layer architecture, events overview, repository layout) and the feature list. No functional changes.

@@ -398,16 +398,16 @@ final class SettingsPanel {
 						);
 						$this->row(
 							'server_events',
-							'checkout_started',
-							__( 'Checkout started', 'tagbridge' ),
-							__( 'WooCommerce: a checkout was submitted.', 'tagbridge' ),
-							! empty( $server['checkout_started'] )
+							'order_placed',
+							__( 'Order placed', 'tagbridge' ),
+							__( 'WooCommerce: a checkout was submitted and the order was created.', 'tagbridge' ),
+							! empty( $server['order_placed'] )
 						);
 						$this->row(
 							'server_events',
 							'order_completed',
 							__( 'Order completed', 'tagbridge' ),
-							__( 'WooCommerce: an order completed, with value and currency.', 'tagbridge' ),
+							__( 'WooCommerce: an order was paid, with value and currency.', 'tagbridge' ),
 							! empty( $server['order_completed'] )
 						);
 						$this->row(

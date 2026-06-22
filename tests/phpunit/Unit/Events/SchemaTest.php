@@ -21,7 +21,7 @@ final class SchemaTest extends TestCase {
 		$this->assertSame( 'product_viewed', Schema::PRODUCT_VIEWED );
 		$this->assertSame( 'product_added_to_cart', Schema::PRODUCT_ADDED_TO_CART );
 		$this->assertSame( 'checkout_viewed', Schema::CHECKOUT_VIEWED );
-		$this->assertSame( 'checkout_started', Schema::CHECKOUT_STARTED );
+		$this->assertSame( 'order_placed', Schema::ORDER_PLACED );
 		$this->assertSame( 'order_completed', Schema::ORDER_COMPLETED );
 		$this->assertSame( 'product_purchased', Schema::PRODUCT_PURCHASED );
 		$this->assertSame( 'product_list_viewed', Schema::PRODUCT_LIST_VIEWED );
