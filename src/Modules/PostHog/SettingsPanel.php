@@ -226,7 +226,7 @@ final class SettingsPanel {
 					<div class="tagbridge-row tagbridge-row--static">
 						<span class="tagbridge-row__text">
 							<span class="tagbridge-row__label"><?php esc_html_e( 'Person profiles', 'tagbridge' ); ?></span>
-							<span class="tagbridge-help tagbridge-help--field"><?php esc_html_e( 'Identified-only is the usual choice.', 'tagbridge' ); ?></span>
+							<span class="tagbridge-help tagbridge-help--field"><?php esc_html_e( 'Who gets a PostHog person profile. "Identified only" profiles just logged-in users (PostHog\'s default, fewest billable profiles). "Everyone" also profiles anonymous visitors, so anonymous funnels and your server-side commerce events stitch into one person — turn on bot filtering to keep the person count clean.', 'tagbridge' ); ?></span>
 						</span>
 						<select class="tagbridge-input" name="<?php echo esc_attr( $this->field( 'client', 'person_profiles' ) ); ?>">
 							<option value="identified_only" <?php selected( $client['person_profiles'], 'identified_only' ); ?>><?php esc_html_e( 'Identified only', 'tagbridge' ); ?></option>
