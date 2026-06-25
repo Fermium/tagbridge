@@ -607,14 +607,58 @@ final class WooEvents {
 	}
 
 	/**
-	 * Distinct id for an in-session visitor (logged-in stable id or cookie id),
-	 * with a generated fallback when neither is available.
+	 * Distinct id for an in-session visitor.
+	 *
+	 * Precedence: the logged-in user's stable id, then the posthog-js cookie id
+	 * (which stitches server events to the same person as the browser). When the
+	 * visitor is anonymous and no posthog cookie is readable, fall back to
+	 * WooCommerce's session customer id — but only when a real session exists, so
+	 * a single visitor's product_viewed, product_added_to_cart and
+	 * checkout_viewed resolve to one person across requests.
+	 *
+	 * Crucially, when none of those yield a stable identifier we return an empty
+	 * string and let the dispatcher drop the event (ServerClient::guard() rejects
+	 * empty ids). The previous behaviour minted a fresh random uuid per event,
+	 * which turned one cookieless visitor — or one cookieless bot hitting several
+	 * endpoints — into a brand-new throwaway person per event, inflating
+	 * unique-person counts and breaking the funnel. A throwaway id is worse than
+	 * no event: it pollutes the data with phantom one-event people.
 	 *
 	 * @return string
 	 */
 	private function visitor_distinct_id() {
 		$resolved = Identity::server_distinct_id();
-		return '' !== $resolved['distinct_id'] ? $resolved['distinct_id'] : wp_generate_uuid4();
+		if ( '' !== $resolved['distinct_id'] ) {
+			return $resolved['distinct_id'];
+		}
+
+		return $this->session_distinct_id();
+	}
+
+	/**
+	 * A stable per-visit distinct id derived from the WooCommerce session.
+	 *
+	 * Returns an id only when a real WooCommerce session exists (a persisted
+	 * session cookie or a logged-in user) so the id is stable across the visit's
+	 * requests. A freshly generated customer id (no session cookie yet) is just
+	 * as ephemeral as a random uuid, so we deliberately return an empty string in
+	 * that case rather than create a one-request phantom person.
+	 *
+	 * @return string
+	 */
+	private function session_distinct_id() {
+		if ( ! function_exists( 'WC' ) ) {
+			return '';
+		}
+
+		$session = WC()->session;
+		if ( ! $session || ! method_exists( $session, 'has_session' ) || ! $session->has_session() ) {
+			return '';
+		}
+
+		$customer_id = (string) $session->get_customer_id();
+
+		return '' !== $customer_id ? 'wc_sess_' . $customer_id : '';
 	}
 
 	/**

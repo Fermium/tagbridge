@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.0
+Stable tag: 0.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,9 @@ No analytics are sent until you enter a PostHog project token and connect. You c
 You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Support for the WordPress Consent API is planned for a future release.
 
 == Changelog ==
+
+= 0.9.1 =
+* Fixed WooCommerce identity stitching: server-side commerce events (product_viewed, product_added_to_cart, cart_viewed, checkout_viewed, order_placed) no longer mint a fresh random distinct id per event when the posthog-js cookie cannot be read server-side. That bug turned one cookieless visitor — or one cookieless bot hitting several endpoints — into a separate phantom person per event, inflating unique-person counts and breaking the funnel (e.g. more unique persons at checkout_viewed than at product_viewed). Anonymous server events now reuse the stable posthog-js cookie id when present, fall back to the WooCommerce session id only when a real session exists (so the id is stable across the visit), and are otherwise dropped rather than attributed to an invented person.
 
 = 0.9.0 =
 * WooCommerce purchases now fire when payment is received (woocommerce_payment_complete plus every paid status from wc_get_is_paid_statuses()), not only on the "completed" status. Stores that use a custom terminal status such as "shipped" or leave paid orders in "processing" no longer lose purchase/revenue events. The purchase is de-duplicated per order and adapts to each site; filterable via `tagbridge_purchase_order_statuses`.
