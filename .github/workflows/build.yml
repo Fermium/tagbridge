@@ -84,6 +84,7 @@ jobs:
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
           REMOTE_BASE: public_html/wp-content/plugins
+          SITE_URL: https://chinesecleavers.co.uk
         shell: bash
         run: |
           set -euo pipefail
@@ -97,3 +98,14 @@ jobs:
             mirror -R --delete --verbose --exclude-glob .git* out/tagbridge $REMOTE_BASE/tagbridge;
             bye"
           echo "Deployed tagbridge ${GITHUB_REF_NAME} to $SFTP_HOST"
+
+          # PHP OPcache serves cached bytecode, so the mirror won't take effect
+          # until it is reset. Upload a one-shot reset script, hit it, remove it.
+          echo "::group::Reset OPcache"
+          printf '<?php if(function_exists("opcache_reset")){opcache_reset();} echo "ok";' > /tmp/_ocbust.php
+          ocname="_ocbust_${RANDOM}${RANDOM}.php"
+          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "set sftp:auto-confirm yes; put /tmp/_ocbust.php -o public_html/$ocname; bye"
+          curl -fsS --max-time 20 "$SITE_URL/$ocname" || echo "opcache reset request failed (non-fatal)"
+          echo
+          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "set sftp:auto-confirm yes; rm public_html/$ocname; bye"
+          echo "::endgroup::"
