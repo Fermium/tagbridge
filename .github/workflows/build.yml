@@ -2,8 +2,9 @@ name: Build
 
 # Builds the distributable plugin zip (bin/build-zip.sh: runtime files + a
 # --no-dev vendor dir, dev junk stripped). On a version tag it also attaches the
-# zip to the GitHub Release; on main / manual runs it uploads it as an artifact
-# so you can grab a current build to install on staging without cutting a tag.
+# zip to the GitHub Release and deploys it to the live site; on main / manual
+# runs it uploads the zip as an artifact so you can grab a current build to
+# install on staging without cutting a tag.
 
 on:
   push:
@@ -51,3 +52,48 @@ jobs:
         with:
           files: dist/tagbridge.zip
           fail_on_unmatched_files: true
+
+  deploy:
+    name: Deploy to chinesecleavers.co.uk
+    needs: build
+    # Only on version tags: a tag is a release, i.e. a version bump.
+    if: startsWith( github.ref, 'refs/tags/' )
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-chinesecleavers-tagbridge
+      cancel-in-progress: false
+    steps:
+      - name: Download built zip
+        uses: actions/download-artifact@v4
+        with:
+          name: tagbridge-plugin
+          path: dist
+
+      - name: Unzip
+        run: |
+          mkdir -p out
+          unzip -q dist/tagbridge.zip -d out
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy via SFTP
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          REMOTE_BASE: public_html/wp-content/plugins
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Guard: the zip must contain the expected plugin layout before we
+          # mirror with --delete, so a malformed build can't wipe the live dir.
+          test -f out/tagbridge/tagbridge.php
+          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:max-retries 2;
+            set net:timeout 20;
+            mirror -R --delete --verbose --exclude-glob .git* out/tagbridge $REMOTE_BASE/tagbridge;
+            bye"
+          echo "Deployed tagbridge ${GITHUB_REF_NAME} to $SFTP_HOST"
