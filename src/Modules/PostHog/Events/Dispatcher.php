@@ -123,13 +123,13 @@ final class Dispatcher {
 	 * can attribute geography and run its bot detection (isLikelyBot /
 	 * getBotName) against the same identity the browser would have carried.
 	 *
-	 * This site runs behind a reverse proxy / CDN (Closte: Google Cloud CDN plus
-	 * a Google Cloud load balancer), so REMOTE_ADDR is the proxy and the visitor
-	 * IP is resolved from the forwarded headers by client_ip(). A listener that
-	 * already set either property wins. Events with no browser request
-	 * (payment-gateway or admin order callbacks) simply carry no user agent —
-	 * that is intentional, and the "Filter Bot Events" transformation is
-	 * configured to keep UA-less events.
+	 * Behind a CDN or reverse proxy (Cloudflare, or Google Cloud CDN plus a load
+	 * balancer as on Closte) REMOTE_ADDR is the proxy, so the visitor IP is
+	 * resolved from the forwarded headers by client_ip(). A listener that already
+	 * set either property wins. Events with no browser request (payment-gateway
+	 * or admin order callbacks) simply carry no user agent — that is intentional,
+	 * and the "Filter Bot Events" transformation is configured to keep UA-less
+	 * events.
 	 *
 	 * @param array<string,mixed> $properties Event properties.
 	 * @return array<string,mixed>
@@ -150,17 +150,17 @@ final class Dispatcher {
 	}
 
 	/**
-	 * Resolve the visitor IP for a site sitting behind a reverse proxy or CDN.
+	 * Resolve the visitor IP for a site behind a CDN or reverse proxy, supporting
+	 * both Cloudflare and a Google Cloud / nginx front end.
 	 *
-	 * Closte fronts WordPress with Google Cloud CDN and a Google Cloud load
-	 * balancer, so REMOTE_ADDR is the proxy, not the visitor. We therefore prefer
-	 * the forwarded client IP: X-Real-IP (the single client IP a trusted
-	 * front-end proxy sets), then the trustworthy hop of X-Forwarded-For (Google
-	 * appends "<client>, <load-balancer>", so the visitor is the second-to-last
-	 * entry), and only fall back to REMOTE_ADDR when it is itself a public
-	 * address — so a load balancer's private IP is never stamped on the event.
-	 * The `tagbridge_server_event_ip` filter overrides the whole resolution for
-	 * an unusual proxy chain. Returns '' when no usable IP is found.
+	 * REMOTE_ADDR is the proxy in these setups, so we try, in order: the
+	 * `tagbridge_server_event_ip` filter (override hook); CF-Connecting-IP, which
+	 * only Cloudflare sets; X-Real-IP, the single client IP an nginx / load
+	 * balancer / CDN front end sets; the trustworthy hop of X-Forwarded-For (a
+	 * Google Cloud load balancer appends "<client>, <load-balancer>", so the
+	 * visitor is the second-to-last entry); and finally REMOTE_ADDR, but only
+	 * when it is itself public so a load balancer's private IP is never stamped
+	 * on the event. Returns '' when no usable IP is found.
 	 *
 	 * @return string
 	 */
@@ -177,6 +177,15 @@ final class Dispatcher {
 			return $override;
 		}
 
+		// Cloudflare sets the original visitor IP here; no other front end does.
+		if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+			$cf = trim( (string) wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
+			if ( false !== filter_var( $cf, FILTER_VALIDATE_IP ) ) {
+				return $cf;
+			}
+		}
+
+		// nginx / load balancer / CDN single client-IP header.
 		if ( ! empty( $_SERVER['HTTP_X_REAL_IP'] ) ) {
 			$real = trim( (string) wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
 			if ( false !== filter_var( $real, FILTER_VALIDATE_IP ) ) {
@@ -187,7 +196,7 @@ final class Dispatcher {
 		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
 			$parts = array_map( 'trim', explode( ',', (string) wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
 			$count = count( $parts );
-			// Two or more hops: the load balancer appended its own IP last, so the
+			// Two or more hops: a load balancer appended its own IP last, so the
 			// visitor is the second-to-last entry. A single hop is the visitor.
 			$candidate = $count >= 2 ? $parts[ $count - 2 ] : $parts[0];
 			if ( false !== filter_var( $candidate, FILTER_VALIDATE_IP ) ) {

@@ -24,6 +24,7 @@ Tagbridge is an independent project. It is not affiliated with, endorsed by, or 
 * Person profile mode (identified-only or everyone) and a cookieless mode (in-memory persistence; no PostHog cookie).
 * Identity: logged-in users are tied to one PostHog person via a stable hashed identifier (not the raw user ID). Email, name, and role are individually optional.
 * Server-side events via posthog-php, each with an on/off toggle behind a master switch. Sent from the server, so an ad blocker does not drop them; a failed or slow request never affects page output.
+* Server-side events carry the visitor's user agent and IP (resolved from your CDN / proxy's forwarded headers, supporting Cloudflare and Google Cloud / nginx fronts), so PostHog can attribute location and filter bot traffic.
 * Server-side PHP error tracking (opt-in): posthog-php installs chained exception/error handlers; captured errors carry the visitor's distinct ID.
 * WooCommerce (when active): the full commerce funnel as server-side events, plus client-side variant selections. Product, cart, and purchase events carry the SKU, categories, and attributes, and each completed order emits one purchase event per line item, so sales break down by SKU and attribute.
 
@@ -75,6 +76,10 @@ Yes. You need a PostHog project and its project token. PostHog offers a free tie
 Yes. Choose "Self-hosted or reverse proxy" and enter your host URL. PostHog loads from that host.
 
 We recommend PostHog's free managed reverse proxy: it routes events through a subdomain of your own domain so ad blockers do not drop them (typically 10-30% more events). Set it up at https://posthog.com/docs/advanced/proxy/managed-reverse-proxy and paste the subdomain as your host.
+
+= Are server-side events attributed to the right location and visitor? =
+
+Yes. Server-side events are stamped with the visitor's user agent and IP address so PostHog can determine approximate location and identify bots. The IP is read from your CDN or reverse proxy's forwarded headers (Cloudflare's CF-Connecting-IP, X-Real-IP, or X-Forwarded-For) and falls back to the direct connection IP. If your proxy chain is unusual, the `tagbridge_server_event_ip` filter lets you supply the IP yourself.
 
 = Will it set cookies? =
 
@@ -131,14 +136,14 @@ PostHog privacy policy: https://posthog.com/privacy
 
 No analytics are sent until you enter a PostHog project token and connect. You control what is captured with the tracking toggles, and you can turn on cookieless mode so no PostHog cookie is set.
 
-Server-side events include the visitor's IP address (resolved from your proxy/CDN's forwarded headers) so PostHog can determine approximate location and filter bot traffic. PostHog can be configured to discard the raw IP after geolocation.
+Server-side events include the visitor's IP address (resolved from your CDN / proxy's forwarded headers) so PostHog can determine approximate location and filter bot traffic. PostHog can be configured to discard the raw IP after geolocation.
 
 You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Support for the WordPress Consent API is planned for a future release.
 
 == Changelog ==
 
 = 0.9.2 =
-* Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. The IP is resolved for sites behind a reverse proxy or CDN — it reads the forwarded client IP from X-Real-IP / X-Forwarded-For (taking the trustworthy hop a Google Cloud load balancer leaves) and falls back to REMOTE_ADDR only when that is itself public, with a `tagbridge_server_event_ip` filter to override for an unusual proxy chain. This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
+* Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. The IP is resolved for sites behind a CDN or reverse proxy and supports both Cloudflare (CF-Connecting-IP) and a Google Cloud / nginx front end (X-Real-IP, then the trustworthy hop of X-Forwarded-For that a Google Cloud load balancer leaves), falling back to REMOTE_ADDR only when that is itself public, with a `tagbridge_server_event_ip` filter to override for an unusual proxy chain. This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
 
 = 0.9.1 =
 * Fixed WooCommerce identity stitching: server-side commerce events (product_viewed, product_added_to_cart, cart_viewed, checkout_viewed, order_placed) no longer mint a fresh random distinct id per event when the posthog-js cookie cannot be read server-side. That bug turned one cookieless visitor — or one cookieless bot hitting several endpoints — into a separate phantom person per event, inflating unique-person counts and breaking the funnel (e.g. more unique persons at checkout_viewed than at product_viewed). Anonymous server events now reuse the stable posthog-js cookie id when present, fall back to the WooCommerce session id only when a real session exists (so the id is stable across the visit), and are otherwise dropped rather than attributed to an invented person.
@@ -193,7 +198,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 == Upgrade Notice ==
 
 = 0.9.2 =
-Server-side events now include the visitor user agent and IP (resolved from your proxy/CDN forwarded headers), so PostHog can geo-locate them and filter bot traffic at ingestion.
+Server-side events now include the visitor user agent and IP (resolved from your CDN / proxy forwarded headers, supporting Cloudflare and Google Cloud / nginx), so PostHog can geo-locate them and filter bot traffic at ingestion.
 
 = 0.8.1 =
 Documentation only. No functional changes.

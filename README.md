@@ -34,6 +34,32 @@ Three layers, with a hard line between them:
   captures `product_variant_selected` on product pages.
 - The full event and property list is in `readme.txt`.
 
+## Server-side request context
+
+Server-side events are stamped with the visitor's user agent (`$raw_user_agent`)
+and IP (`$ip`) in `Dispatcher::with_request_context()`, so PostHog can attribute
+geography and run bot detection (`isLikelyBot` / `getBotName`) on them — the same
+way it does for browser events.
+
+The IP is resolved by `Dispatcher::client_ip()` to work behind a CDN or reverse
+proxy, where `REMOTE_ADDR` is the proxy rather than the visitor. It tries, in
+order:
+
+1. the `tagbridge_server_event_ip` filter (override hook for an unusual chain),
+2. `CF-Connecting-IP` (Cloudflare),
+3. `X-Real-IP` (nginx / load balancer / CDN),
+4. the trustworthy hop of `X-Forwarded-For` — a Google Cloud load balancer
+   appends `<client>, <lb>`, so the visitor is the second-to-last entry,
+5. `REMOTE_ADDR`, but only when it is itself a public address.
+
+This covers both Cloudflare and Google Cloud / nginx fronts (e.g. Closte) out of
+the box; anything more exotic can be corrected with the filter.
+
+Events that fire without a browser request (payment-gateway or admin order
+callbacks) carry no user agent by design. Configure the PostHog **Filter Bot
+Events** transformation to *keep* events where the user agent is not set, so real
+browserless orders are not dropped along with the bots.
+
 ## Requirements
 
 - **Runtime:** PHP 8.2+, WordPress 5.8+. WooCommerce is optional.
