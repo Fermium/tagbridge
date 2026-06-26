@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.2
+Stable tag: 0.9.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.9.3 =
+* Maintenance release: build and release automation only. No functional changes to the plugin.
+
 = 0.9.2 =
 * Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. The IP is resolved for sites behind a CDN or reverse proxy and supports both Cloudflare (CF-Connecting-IP) and a Google Cloud / nginx front end (X-Real-IP, then the trustworthy hop of X-Forwarded-For that a Google Cloud load balancer leaves), falling back to REMOTE_ADDR only when that is itself public, with a `tagbridge_server_event_ip` filter to override for an unusual proxy chain. This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
 
@@ -196,6 +199,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.9.3 =
+Maintenance only. No functional changes.
 
 = 0.9.2 =
 Server-side events now include the visitor user agent and IP (resolved from your CDN / proxy forwarded headers, supporting Cloudflare and Google Cloud / nginx), so PostHog can geo-locate them and filter bot traffic at ingestion.
