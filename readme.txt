@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.1
+Stable tag: 0.9.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -134,6 +134,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.9.2 =
+* Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. Behind Cloudflare the IP is read from the CF-Connecting-IP header (REMOTE_ADDR is only the CDN edge). This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
+
 = 0.9.1 =
 * Fixed WooCommerce identity stitching: server-side commerce events (product_viewed, product_added_to_cart, cart_viewed, checkout_viewed, order_placed) no longer mint a fresh random distinct id per event when the posthog-js cookie cannot be read server-side. That bug turned one cookieless visitor — or one cookieless bot hitting several endpoints — into a separate phantom person per event, inflating unique-person counts and breaking the funnel (e.g. more unique persons at checkout_viewed than at product_viewed). Anonymous server events now reuse the stable posthog-js cookie id when present, fall back to the WooCommerce session id only when a real session exists (so the id is stable across the visit), and are otherwise dropped rather than attributed to an invented person.
 
@@ -185,6 +188,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.9.2 =
+Server-side events now include the visitor user agent and Cloudflare client IP, so PostHog can geo-locate them and filter bot traffic at ingestion.
 
 = 0.8.1 =
 Documentation only. No functional changes.
