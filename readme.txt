@@ -105,6 +105,7 @@ By default PostHog uses its normal storage. Turn on "Privacy-first cookieless mo
 
 * tagbridge_posthog_js_config: the posthog-js init config array, before it is printed.
 * tagbridge_posthog_mask_text_selector: the session-replay text-masking CSS selector (empty disables it).
+* tagbridge_server_event_ip: the resolved visitor IP stamped on server-side events; return a non-empty string to override detection for an unusual proxy chain.
 * tagbridge_module_manifest: the list of registered integration modules.
 
 == External services ==
@@ -130,12 +131,14 @@ PostHog privacy policy: https://posthog.com/privacy
 
 No analytics are sent until you enter a PostHog project token and connect. You control what is captured with the tracking toggles, and you can turn on cookieless mode so no PostHog cookie is set.
 
+Server-side events include the visitor's IP address (resolved from your proxy/CDN's forwarded headers) so PostHog can determine approximate location and filter bot traffic. PostHog can be configured to discard the raw IP after geolocation.
+
 You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Support for the WordPress Consent API is planned for a future release.
 
 == Changelog ==
 
 = 0.9.2 =
-* Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. Behind Cloudflare the IP is read from the CF-Connecting-IP header (REMOTE_ADDR is only the CDN edge). This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
+* Server-side events now carry the visitor's user agent ($raw_user_agent) and IP ($ip), stamped centrally in the dispatcher so every server event gets them. The IP is resolved for sites behind a reverse proxy or CDN — it reads the forwarded client IP from X-Real-IP / X-Forwarded-For (taking the trustworthy hop a Google Cloud load balancer leaves) and falls back to REMOTE_ADDR only when that is itself public, with a `tagbridge_server_event_ip` filter to override for an unusual proxy chain. This lets PostHog attribute geography and run its bot detection (isLikelyBot / getBotName) on server events, so automated traffic can be filtered at ingestion. Events that fire without a browser request (payment-gateway and admin order callbacks) intentionally carry no user agent.
 
 = 0.9.1 =
 * Fixed WooCommerce identity stitching: server-side commerce events (product_viewed, product_added_to_cart, cart_viewed, checkout_viewed, order_placed) no longer mint a fresh random distinct id per event when the posthog-js cookie cannot be read server-side. That bug turned one cookieless visitor — or one cookieless bot hitting several endpoints — into a separate phantom person per event, inflating unique-person counts and breaking the funnel (e.g. more unique persons at checkout_viewed than at product_viewed). Anonymous server events now reuse the stable posthog-js cookie id when present, fall back to the WooCommerce session id only when a real session exists (so the id is stable across the visit), and are otherwise dropped rather than attributed to an invented person.
@@ -190,7 +193,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 == Upgrade Notice ==
 
 = 0.9.2 =
-Server-side events now include the visitor user agent and Cloudflare client IP, so PostHog can geo-locate them and filter bot traffic at ingestion.
+Server-side events now include the visitor user agent and IP (resolved from your proxy/CDN forwarded headers), so PostHog can geo-locate them and filter bot traffic at ingestion.
 
 = 0.8.1 =
 Documentation only. No functional changes.
