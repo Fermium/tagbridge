@@ -111,9 +111,60 @@ final class Dispatcher {
 			return;
 		}
 
+		$properties = $this->with_request_context( $properties );
+
 		if ( ! $client->capture( $distinct_id, $events[ $event_key ], $properties ) ) {
 			$this->log( 'capture ' . $event_key . ' failed: ' . $client->last_error() );
 		}
+	}
+
+	/**
+	 * Stamp the visitor's user agent and IP onto a server-side event so PostHog
+	 * can attribute geography and run its bot detection (isLikelyBot /
+	 * getBotName) against the same identity the browser would have carried.
+	 *
+	 * Behind Cloudflare, REMOTE_ADDR is only the CDN edge, so the visitor IP
+	 * comes from the CF-Connecting-IP header. A listener that already set either
+	 * property wins. Events with no browser request (payment-gateway or admin
+	 * order callbacks) simply carry no user agent — that is intentional, and the
+	 * "Filter Bot Events" transformation is configured to keep UA-less events.
+	 *
+	 * @param array<string,mixed> $properties Event properties.
+	 * @return array<string,mixed>
+	 */
+	private function with_request_context( array $properties ) {
+		if ( ! isset( $properties['$raw_user_agent'] ) && ! empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+			$properties['$raw_user_agent'] = sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) );
+		}
+
+		if ( ! isset( $properties['$ip'] ) ) {
+			$ip = $this->client_ip();
+			if ( '' !== $ip ) {
+				$properties['$ip'] = $ip;
+			}
+		}
+
+		return $properties;
+	}
+
+	/**
+	 * Resolve the visitor IP, preferring Cloudflare's CF-Connecting-IP over
+	 * REMOTE_ADDR (which is only the Cloudflare edge here). Returns '' when
+	 * neither header holds a valid IP.
+	 *
+	 * @return string
+	 */
+	private function client_ip() {
+		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'REMOTE_ADDR' ) as $key ) {
+			if ( empty( $_SERVER[ $key ] ) ) {
+				continue;
+			}
+			$ip = trim( (string) wp_unslash( $_SERVER[ $key ] ) );
+			if ( false !== filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+				return $ip;
+			}
+		}
+		return '';
 	}
 
 	/**
