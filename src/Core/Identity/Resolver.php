@@ -43,6 +43,37 @@ final class Resolver {
 	const USER_ID_PREFIX = 'wp_';
 
 	/**
+	 * Key posthog-js stores its session state under in the cookie.
+	 *
+	 * The value is an array [last_activity_ms, session_id, session_start_ms].
+	 *
+	 * @var string
+	 */
+	const SESSION_ID_KEY = '$sesid';
+
+	/**
+	 * Idle window (ms) after which a stored browser session is stale.
+	 *
+	 * Matches posthog-js's default `session_idle_timeout_seconds` of 30 minutes:
+	 * once the browser has been idle this long it rotates to a new session id, so
+	 * the id in the cookie no longer names the session PostHog is recording.
+	 *
+	 * @var int
+	 */
+	const SESSION_MAX_IDLE_MS = 1800000;
+
+	/**
+	 * Maximum session length (ms) PostHog allows before a new session starts.
+	 *
+	 * A session tops out at 24 hours. Past that the browser has rotated to a new
+	 * id, and PostHog rejects a custom $session_id whose UUIDv7 timestamp is more
+	 * than 24 hours before the event, so a stored id this old must not be reused.
+	 *
+	 * @var int
+	 */
+	const SESSION_MAX_LENGTH_MS = 86400000;
+
+	/**
 	 * Source: the id came from the logged-in user (identified).
 	 *
 	 * @var string
@@ -90,6 +121,75 @@ final class Resolver {
 	 * @return string|null The distinct id, or null.
 	 */
 	public static function parse_distinct_id( $cookie_value ) {
+		$decoded = self::decode_cookie( $cookie_value );
+		if ( null === $decoded || ! isset( $decoded['distinct_id'] ) ) {
+			return null;
+		}
+
+		$distinct_id = $decoded['distinct_id'];
+		if ( ! is_string( $distinct_id ) || '' === $distinct_id ) {
+			return null;
+		}
+
+		return $distinct_id;
+	}
+
+	/**
+	 * Extract the current browser session id from a posthog-js cookie value.
+	 *
+	 * The posthog-js library stores its session state under the `$sesid` key as
+	 * the array [last_activity_ms, session_id, session_start_ms]. Stamping that id
+	 * (a UUIDv7) onto a server-side event is what lets PostHog attach the event to
+	 * the browser's session replay and lets the recording be filtered by it. The
+	 * id is reused verbatim — never regenerated — so it stays consistent with the
+	 * browser's own events and satisfies PostHog's custom-$session_id rules.
+	 *
+	 * When $now_ms is given, a stored id is only returned while the browser would
+	 * still consider it current: not idle past SESSION_MAX_IDLE_MS and not older
+	 * than SESSION_MAX_LENGTH_MS. Past either bound the browser has rotated to a
+	 * new session, and PostHog would reject the expired id, so we return null and
+	 * let the event go out without a session id rather than mis-attribute it.
+	 *
+	 * @param string|null $cookie_value Raw cookie value (may be null).
+	 * @param int|null    $now_ms       Current time in ms, or null to skip the freshness check.
+	 * @return string|null The session id, or null.
+	 */
+	public static function parse_session_id( $cookie_value, $now_ms = null ) {
+		$decoded = self::decode_cookie( $cookie_value );
+		if ( null === $decoded || ! isset( $decoded[ self::SESSION_ID_KEY ] ) || ! is_array( $decoded[ self::SESSION_ID_KEY ] ) ) {
+			return null;
+		}
+
+		$sesid = $decoded[ self::SESSION_ID_KEY ];
+
+		// [ last_activity_ms, session_id, session_start_ms ] — the id is at index 1.
+		if ( ! isset( $sesid[1] ) || ! is_string( $sesid[1] ) || '' === $sesid[1] ) {
+			return null;
+		}
+
+		if ( null !== $now_ms ) {
+			$now = (float) $now_ms;
+			if ( isset( $sesid[0] ) && is_numeric( $sesid[0] ) && ( $now - (float) $sesid[0] ) > self::SESSION_MAX_IDLE_MS ) {
+				return null;
+			}
+			if ( isset( $sesid[2] ) && is_numeric( $sesid[2] ) && ( $now - (float) $sesid[2] ) > self::SESSION_MAX_LENGTH_MS ) {
+				return null;
+			}
+		}
+
+		return $sesid[1];
+	}
+
+	/**
+	 * Decode a posthog-js cookie value to its property array, or null.
+	 *
+	 * The cookie holds JSON; some servers/clients leave it URL-encoded, so a
+	 * value containing a percent sign is decoded once more before giving up.
+	 *
+	 * @param string|null $cookie_value Raw cookie value (may be null).
+	 * @return array<string,mixed>|null
+	 */
+	private static function decode_cookie( $cookie_value ) {
 		if ( ! is_string( $cookie_value ) || '' === $cookie_value ) {
 			return null;
 		}
@@ -101,16 +201,7 @@ final class Resolver {
 			$decoded = json_decode( rawurldecode( $cookie_value ), true );
 		}
 
-		if ( ! is_array( $decoded ) || ! isset( $decoded['distinct_id'] ) ) {
-			return null;
-		}
-
-		$distinct_id = $decoded['distinct_id'];
-		if ( ! is_string( $distinct_id ) || '' === $distinct_id ) {
-			return null;
-		}
-
-		return $distinct_id;
+		return is_array( $decoded ) ? $decoded : null;
 	}
 
 	/**

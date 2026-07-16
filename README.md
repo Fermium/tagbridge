@@ -41,6 +41,16 @@ and IP (`$ip`) in `Dispatcher::with_request_context()`, so PostHog can attribute
 geography and run bot detection (`isLikelyBot` / `getBotName`) on them — the same
 way it does for browser events.
 
+The same method also stamps the visitor's **session id** (`$session_id`), read
+from the posthog-js cookie by `Resolver::parse_session_id()` (the `$sesid` key,
+`[last_activity, session_id, session_start]`) and reused verbatim. That id is a
+UUIDv7, so it satisfies PostHog's rules for a custom `$session_id` and links the
+server event to the browser's session replay — without it, commerce events like
+`product_viewed` can't be used to filter recordings. It is stamped only while the
+browser would still treat the session as current (not idle past 30 min, not older
+than 24 h), and is absent for browserless requests (payment-gateway / admin
+callbacks) and in cookieless mode.
+
 The IP is resolved by `Dispatcher::client_ip()` to work behind a CDN or reverse
 proxy, where `REMOTE_ADDR` is the proxy rather than the visitor. It tries, in
 order:

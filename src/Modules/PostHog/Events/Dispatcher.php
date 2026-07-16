@@ -119,17 +119,19 @@ final class Dispatcher {
 	}
 
 	/**
-	 * Stamp the visitor's user agent and IP onto a server-side event so PostHog
-	 * can attribute geography and run its bot detection (isLikelyBot /
-	 * getBotName) against the same identity the browser would have carried.
+	 * Stamp the visitor's browser request context onto a server-side event: the
+	 * user agent and IP (so PostHog can attribute geography and run its bot
+	 * detection — isLikelyBot / getBotName — against the same identity the browser
+	 * would have carried), and the current session id (so the event links to the
+	 * visitor's session replay and the recording can be filtered by it).
 	 *
 	 * Behind a CDN or reverse proxy (Cloudflare, or Google Cloud CDN plus a load
 	 * balancer as on Closte) REMOTE_ADDR is the proxy, so the visitor IP is
 	 * resolved from the forwarded headers by client_ip(). A listener that already
-	 * set either property wins. Events with no browser request (payment-gateway
-	 * or admin order callbacks) simply carry no user agent — that is intentional,
-	 * and the "Filter Bot Events" transformation is configured to keep UA-less
-	 * events.
+	 * set any of these properties wins. Events with no browser request (payment-
+	 * gateway or admin order callbacks) simply carry no user agent and no session
+	 * id — that is intentional, and the "Filter Bot Events" transformation is
+	 * configured to keep UA-less events.
 	 *
 	 * @param array<string,mixed> $properties Event properties.
 	 * @return array<string,mixed>
@@ -143,6 +145,16 @@ final class Dispatcher {
 			$ip = $this->client_ip();
 			if ( '' !== $ip ) {
 				$properties['$ip'] = $ip;
+			}
+		}
+
+		// Reuse the browser's own session id (from the posthog-js cookie) so this
+		// server-side event attaches to the same session replay as the visitor's
+		// client-side events, instead of being unlinkable to any recording.
+		if ( ! isset( $properties['$session_id'] ) ) {
+			$session_id = Identity::cookie_session_id();
+			if ( null !== $session_id && '' !== $session_id ) {
+				$properties['$session_id'] = $session_id;
 			}
 		}
 

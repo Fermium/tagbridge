@@ -46,6 +46,39 @@ final class Identity {
 	}
 
 	/**
+	 * The browser's current session id from the posthog-js cookie, if present
+	 * and still fresh.
+	 *
+	 * Stamping this onto a server-side event links it to the visitor's session
+	 * replay (and lets the recording be filtered by that event). Read from the
+	 * same ph_<key>_posthog cookie as the distinct id; returns null when there is
+	 * no cookie (e.g. cookieless mode or a browserless request) or the stored
+	 * session has gone stale.
+	 *
+	 * @return string|null
+	 */
+	public static function cookie_session_id() {
+		$key = Settings::project_api_key();
+		if ( '' === $key ) {
+			return null;
+		}
+
+		$name = Resolver::cookie_name( $key );
+		if ( empty( $_COOKIE[ $name ] ) ) {
+			return null;
+		}
+
+		// The cookie holds JSON; the extracted session id is sanitized below.
+		$raw = wp_unslash( $_COOKIE[ $name ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$raw = is_string( $raw ) ? $raw : '';
+
+		$now_ms     = (int) round( microtime( true ) * 1000 );
+		$session_id = Resolver::parse_session_id( $raw, $now_ms );
+
+		return null === $session_id ? null : sanitize_text_field( $session_id );
+	}
+
+	/**
 	 * The identity (stable distinct id + person properties) for the logged-in
 	 * user, or null when the visitor is not logged in.
 	 *

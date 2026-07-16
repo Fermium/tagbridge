@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.3
+Stable tag: 0.9.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.9.4 =
+* Server-side events now carry the visitor's browser session id ($session_id), read from the same posthog-js cookie as the distinct id and reused verbatim (a valid UUIDv7), so commerce events such as product_viewed and product_added_to_cart attach to the visitor's session replay and recordings can be filtered by them. Previously these events reached PostHog without a session id and could not be used to filter recordings. The id is stamped only while the browser still considers the session current (not idle past 30 minutes, not older than 24 hours), and is skipped for browserless requests (payment-gateway and admin order callbacks) and in cookieless mode — matching PostHog's rules for a custom $session_id so an expired id is never sent. A listener that already set $session_id wins.
+
 = 0.9.3 =
 * Maintenance release: build and release automation only. No functional changes to the plugin.
 
@@ -199,6 +202,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.9.4 =
+Server-side WooCommerce events (product viewed, added to cart, and more) now link to session recordings via $session_id, so you can filter replays by them.
 
 = 0.9.3 =
 Maintenance only. No functional changes.
