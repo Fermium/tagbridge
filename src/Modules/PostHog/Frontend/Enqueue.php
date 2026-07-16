@@ -21,6 +21,13 @@ use Tagbridge\Modules\PostHog\Settings;
 final class Enqueue {
 
 	/**
+	 * One-shot flag cookie set on logout so the next page load calls reset().
+	 *
+	 * @var string
+	 */
+	const RESET_COOKIE = 'tagbridge_reset';
+
+	/**
 	 * Register hooks.
 	 *
 	 * @return void
@@ -32,6 +39,8 @@ final class Enqueue {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_variations' ) );
 		// Capture cart_viewed when CheckoutWC's side-cart opens (no cart page).
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_side_cart_tracking' ) );
+		// Flag a browser reset() on the next page load after the user logs out.
+		add_action( 'wp_logout', array( $this, 'flag_reset_on_logout' ) );
 	}
 
 	/**
@@ -135,16 +144,76 @@ final class Enqueue {
 		$key = Settings::project_api_key();
 		$js  = $this->loader() . "\n" . $this->init_call( $key, $this->build_config() );
 
-		// Tie a logged-in user to a stable PostHog person. Calling identify on
-		// the next page load after login merges the prior anonymous activity into
-		// the identified person. posthog-js de-duplicates repeat identify calls,
-		// so emitting this each page load does not spam $identify events.
+		// After logout, tell posthog-js to reset() so the previous user's
+		// identified id does not linger in the browser. Mutually exclusive with
+		// the identify below (one runs when logged out, the other when logged in).
+		$reset = $this->reset_call();
+		if ( '' !== $reset ) {
+			$js .= "\n" . $reset;
+		}
+
+		// Tie a logged-in user to a stable PostHog person. Calling identify on the
+		// next page load after login merges the prior anonymous activity into the
+		// identified person. With a persistent store (cookie / localStorage)
+		// posthog-js de-duplicates repeat identify calls, so emitting it each page
+		// load does not spam $identify events. In cookieless mode (persistence
+		// 'memory') nothing survives a page load, so a fresh $identify fires per
+		// page — an accepted trade-off of running without storage.
 		$identify = $this->identify_call();
 		if ( '' !== $identify ) {
 			$js .= "\n" . $identify;
 		}
 
 		wp_print_inline_script_tag( $js, array( 'id' => 'tagbridge-posthog-js' ) );
+	}
+
+	/**
+	 * On logout, set a short-lived flag cookie so the next front-end page load
+	 * emits posthog.reset(). Without it the ph_<key>_posthog cookie keeps the
+	 * logged-out user's identified id, so a later visitor on the same device is
+	 * tracked as that user and a subsequent different login tries to merge two
+	 * already-identified people — which PostHog refuses.
+	 *
+	 * @return void
+	 */
+	public function flag_reset_on_logout() {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		setcookie(
+			self::RESET_COOKIE,
+			'1',
+			array(
+				'expires'  => time() + HOUR_IN_SECONDS,
+				'path'     => defined( 'COOKIEPATH' ) && COOKIEPATH ? COOKIEPATH : '/',
+				'domain'   => defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '',
+				'secure'   => is_ssl(),
+				'httponly' => false,
+				'samesite' => 'Lax',
+			)
+		);
+	}
+
+	/**
+	 * Build the posthog.reset() call for a just-logged-out visitor, or '' if none.
+	 *
+	 * Fires only when the logout flag cookie is present and the visitor is now
+	 * anonymous, and clears the cookie client-side so it runs exactly once.
+	 * reset() unlinks future events from the logged-out user and starts a fresh
+	 * anonymous person and session, matching PostHog's documented logout handling.
+	 *
+	 * @return string
+	 */
+	private function reset_call() {
+		if ( empty( $_COOKIE[ self::RESET_COOKIE ] ) || is_user_logged_in() ) {
+			return '';
+		}
+
+		$path  = defined( 'COOKIEPATH' ) && COOKIEPATH ? COOKIEPATH : '/';
+		$clear = self::RESET_COOKIE . '=; path=' . $path . '; max-age=0';
+
+		return 'posthog.reset();document.cookie=' . wp_json_encode( $clear ) . ';';
 	}
 
 	/**

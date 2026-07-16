@@ -13,6 +13,7 @@ namespace Tagbridge\Modules\PostHog\Events;
 
 use Tagbridge\Core\Events\Schema;
 use Tagbridge\Core\Events\ServerClient;
+use Tagbridge\Core\Identity\Resolver;
 use Tagbridge\Modules\PostHog\Identity;
 use Tagbridge\Modules\PostHog\Settings;
 
@@ -112,10 +113,45 @@ final class Dispatcher {
 		}
 
 		$properties = $this->with_request_context( $properties );
+		$properties = $this->with_person_profile_mode( $distinct_id, $properties );
 
 		if ( ! $client->capture( $distinct_id, $events[ $event_key ], $properties ) ) {
 			$this->log( 'capture ' . $event_key . ' failed: ' . $client->last_error() );
 		}
+	}
+
+	/**
+	 * Honor the site's person_profiles setting on the server side.
+	 *
+	 * The posthog-php library (like every backend SDK) creates a PostHog person
+	 * profile for each captured event by default and does not read the client-side
+	 * person_profiles config. So when the site is set to "identified_only", an
+	 * anonymous server event (the raw posthog cookie id, a wc_sess_ / wc_order_
+	 * id, or a fallback) would still mint a person — inflating unique-person
+	 * counts and costing several times more than an anonymous event. We set
+	 * $process_person_profile => false for those, matching what posthog-js does
+	 * for the same visitor; genuinely identified users (wp_ ids) keep their
+	 * profile. When the site is "always", every event keeps its profile. A
+	 * listener that already set the flag wins.
+	 *
+	 * @param string              $distinct_id Resolved distinct id.
+	 * @param array<string,mixed> $properties  Event properties.
+	 * @return array<string,mixed>
+	 */
+	private function with_person_profile_mode( $distinct_id, array $properties ) {
+		if ( isset( $properties['$process_person_profile'] ) ) {
+			return $properties;
+		}
+
+		$mode = isset( Settings::client()['person_profiles'] )
+			? (string) Settings::client()['person_profiles']
+			: 'identified_only';
+
+		if ( 'identified_only' === $mode && ! Resolver::is_user_id( $distinct_id ) ) {
+			$properties['$process_person_profile'] = false;
+		}
+
+		return $properties;
 	}
 
 	/**

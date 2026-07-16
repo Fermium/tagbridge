@@ -4,7 +4,7 @@ Tags: analytics, posthog, tracking, events, statistics
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.4
+Stable tag: 0.9.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,11 @@ You are responsible for telling your visitors what you collect and for obtaining
 
 == Changelog ==
 
+= 0.9.5 =
+* Person profiles now honor the "identified-only" setting on the server side. posthog-php (like every backend SDK) creates a PostHog person for each event by default and ignores the browser's person-profile mode, so anonymous server events (a posthog cookie id, a WooCommerce session id, or a per-order fallback) were minting a person each — inflating unique-person counts and costing several times more than an anonymous event. When the site is set to identified-only, those events now send $process_person_profile = false, matching what posthog-js does for the same visitor; only logged-in users create a profile. Sites set to "everyone" are unchanged.
+* Logout now resets the browser identity. The plugin flags a one-shot posthog.reset() on the next page load after logout, so the logged-out user's identified id no longer lingers in the browser — preventing a later visitor on a shared device from being tracked as that user, and avoiding a refused merge of two already-identified people on a subsequent different login.
+* Corrected an inaccurate code comment about identify de-duplication in cookieless mode (persistence 'memory' does not persist across page loads).
+
 = 0.9.4 =
 * Server-side events now carry the visitor's browser session id ($session_id), read from the same posthog-js cookie as the distinct id and reused verbatim (a valid UUIDv7), so commerce events such as product_viewed and product_added_to_cart attach to the visitor's session replay and recordings can be filtered by them. Previously these events reached PostHog without a session id and could not be used to filter recordings. The id is stamped only while the browser still considers the session current (not idle past 30 minutes, not older than 24 hours), and is skipped for browserless requests (payment-gateway and admin order callbacks) and in cookieless mode — matching PostHog's rules for a custom $session_id so an expired id is never sent. A listener that already set $session_id wins.
 
@@ -202,6 +207,9 @@ You are responsible for telling your visitors what you collect and for obtaining
 * First release: connect to PostHog (US, EU, or self-hosted / reverse proxy), validate the key before saving, and load PostHog on the front end with tracking toggles (pageviews, autocapture, session recording, person profiles, cookieless mode).
 
 == Upgrade Notice ==
+
+= 0.9.5 =
+Server-side events now respect your person-profile setting (no more phantom people from anonymous events when set to identified-only), and logout resets the browser identity so shared-device visitors are not tracked as the previous user.
 
 = 0.9.4 =
 Server-side WooCommerce events (product viewed, added to cart, and more) now link to session recordings via $session_id, so you can filter replays by them.

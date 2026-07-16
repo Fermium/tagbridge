@@ -222,6 +222,22 @@ final class Resolver {
 	}
 
 	/**
+	 * Whether a distinct id belongs to an identified WordPress user.
+	 *
+	 * A logged-in user's id is stable_user_id()'s USER_ID_PREFIX + hash — and once
+	 * the browser has identified, the cookie carries that same prefixed id. Every
+	 * other server-side id is anonymous: the raw posthog-js cookie uuid, a
+	 * WooCommerce session id, or a per-order fallback. Callers use this to decide
+	 * whether a server event should create a PostHog person profile.
+	 *
+	 * @param string $distinct_id Distinct id.
+	 * @return bool
+	 */
+	public static function is_user_id( $distinct_id ) {
+		return is_string( $distinct_id ) && str_starts_with( $distinct_id, self::USER_ID_PREFIX );
+	}
+
+	/**
 	 * Resolve which distinct id a server-side event should use.
 	 *
 	 * Precedence:

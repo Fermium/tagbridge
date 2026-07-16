@@ -168,4 +168,22 @@ final class ResolverTest extends TestCase {
 		$cookie = '{"$sesid":[null,"no-ts-session",null]}';
 		$this->assertSame( 'no-ts-session', Resolver::parse_session_id( $cookie, $now ) );
 	}
+
+	public function test_is_user_id_true_for_a_stable_user_id() {
+		$id = Resolver::stable_user_id( 7, 'salt' );
+		$this->assertTrue( Resolver::is_user_id( $id ) );
+		$this->assertTrue( Resolver::is_user_id( 'wp_anything' ) );
+	}
+
+	public function test_is_user_id_false_for_anonymous_ids() {
+		$this->assertFalse( Resolver::is_user_id( '0192abcd-1234-7000-8000-000000000000' ) ); // posthog uuid.
+		$this->assertFalse( Resolver::is_user_id( 'wc_sess_42' ) );
+		$this->assertFalse( Resolver::is_user_id( 'wc_order_100' ) );
+		$this->assertFalse( Resolver::is_user_id( '' ) );
+	}
+
+	public function test_is_user_id_false_for_non_strings() {
+		$this->assertFalse( Resolver::is_user_id( null ) );
+		$this->assertFalse( Resolver::is_user_id( 123 ) );
+	}
 }

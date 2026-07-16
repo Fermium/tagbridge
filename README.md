@@ -29,9 +29,15 @@ Three layers, with a hard line between them:
   the `Dispatcher` and `Core/Events/ServerClient` (posthog-php). HPOS-safe and
   flushed on `shutdown`; the WooCommerce listener only registers when WooCommerce
   is active. `Modules/PostHog/ProductMeta` adds category/attribute context.
+  Because backend SDKs ignore the client `person_profiles` setting and create a
+  person for every event, the `Dispatcher` sets `$process_person_profile => false`
+  on anonymous events (non-`wp_` distinct ids, per `Resolver::is_user_id()`) when
+  the site is `identified_only`, so only logged-in users get a profile server-side.
 - **Client-side:** the posthog-js snippet (`Frontend/Enqueue`) handles pageviews,
   autocapture, heatmaps, session replay, and exceptions; `assets/js/variations.js`
-  captures `product_variant_selected` on product pages.
+  captures `product_variant_selected` on product pages. On logout, a one-shot flag
+  cookie makes the next page load call `posthog.reset()` so the identified id does
+  not linger in the browser.
 - The full event and property list is in `readme.txt`.
 
 ## Server-side request context
