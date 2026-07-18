@@ -56,9 +56,15 @@ jobs:
   deploy:
     name: Deploy to chinesecleavers.co.uk
     needs: build
-    # Only on version tags: a tag is a release, i.e. a version bump.
+    # Only on version tags: a tag is a release, i.e. a version bump. Tags can
+    # only be pushed by collaborators with write access, so a fork PR can never
+    # reach this job — and the deploy secrets live in the `production`
+    # environment, unavailable to any pull_request run.
     if: startsWith( github.ref, 'refs/tags/' )
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
     concurrency:
       group: deploy-chinesecleavers-tagbridge
       cancel-in-progress: false
@@ -69,43 +75,26 @@ jobs:
           name: tagbridge-plugin
           path: dist
 
-      - name: Unzip
-        run: |
-          mkdir -p out
-          unzip -q dist/tagbridge.zip -d out
-
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Deploy via SFTP
+      # Push the built zip to the VPS over SSH. The key is a forced-command key
+      # that can ONLY run stack/bin/deploy-plugin.sh on the server: the slug is
+      # passed as the command, the zip on stdin. The server installs it as uid
+      # 1000 via `wp plugin install --force`, verifies the site still returns
+      # 200, and auto-rolls-back on failure. Host key is pinned (no MITM).
+      - name: Deploy over SSH (forced-command key)
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
-          SFTP_USER: ${{ secrets.SFTP_USER }}
-          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
-          REMOTE_BASE: public_html/wp-content/plugins
-          SITE_URL: https://chinesecleavers.co.uk
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         shell: bash
         run: |
           set -euo pipefail
-          # Guard: the zip must contain the expected plugin layout before we
-          # mirror with --delete, so a malformed build can't wipe the live dir.
-          test -f out/tagbridge/tagbridge.php
-          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "
-            set sftp:auto-confirm yes;
-            set net:max-retries 2;
-            set net:timeout 20;
-            mirror -R --delete --verbose --exclude-glob .git* out/tagbridge $REMOTE_BASE/tagbridge;
-            bye"
-          echo "Deployed tagbridge ${GITHUB_REF_NAME} to $SFTP_HOST"
-
-          # PHP OPcache serves cached bytecode, so the mirror won't take effect
-          # until it is reset. Upload a one-shot reset script, hit it, remove it.
-          echo "::group::Reset OPcache"
-          printf '<?php if(function_exists("opcache_reset")){opcache_reset();} echo "ok";' > /tmp/_ocbust.php
-          ocname="_ocbust_${RANDOM}${RANDOM}.php"
-          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "set sftp:auto-confirm yes; put /tmp/_ocbust.php -o public_html/$ocname; bye"
-          curl -fsS --max-time 20 "$SITE_URL/$ocname" || echo "opcache reset request failed (non-fatal)"
-          echo
-          lftp -u "$SFTP_USER,$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" -e "set sftp:auto-confirm yes; rm public_html/$ocname; bye"
-          echo "::endgroup::"
+          test -f dist/tagbridge.zip
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY"     > ~/.ssh/deploy_key   && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts  && chmod 644 ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key \
+              -o BatchMode=yes -o IdentitiesOnly=yes \
+              -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes \
+              "$DEPLOY_USER@$DEPLOY_HOST" "tagbridge" < dist/tagbridge.zip
+          echo "Deployed tagbridge ${GITHUB_REF_NAME} to the VPS."
