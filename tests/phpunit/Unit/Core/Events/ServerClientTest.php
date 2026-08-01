@@ -21,7 +21,7 @@ final class ServerClientTest extends TestCase {
 		);
 
 		$client = new ServerClient();
-		$ok      = $client->init(
+		$ok     = $client->init(
 			'phc_test',
 			'https://example.test',
 			array(

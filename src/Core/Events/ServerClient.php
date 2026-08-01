@@ -73,8 +73,8 @@ final class ServerClient {
 	/**
 	 * Warm posthog-php's exception payload builder before enabling error tracking.
 	 *
-	 * posthog-php 4.5.0 installs its global error/exception/shutdown handlers
-	 * without loading ExceptionPayloadBuilder — that class is only autoloaded
+	 * The posthog-php 4.5.0 client installs its global error/exception/shutdown
+	 * handlers without loading ExceptionPayloadBuilder — that class is only autoloaded
 	 * lazily the first time a handler actually fires. If that first disk read
 	 * lands while the host filesystem is failing, the autoload throws
 	 * ("Class PostHog\ExceptionPayloadBuilder not found") and a recoverable
