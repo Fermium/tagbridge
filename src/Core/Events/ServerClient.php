@@ -49,7 +49,7 @@ final class ServerClient {
 		}
 
 		$options = array( 'host' => (string) $host );
-		if ( ! empty( $error_tracking['enabled'] ) ) {
+		if ( ! empty( $error_tracking['enabled'] ) && $this->error_tracking_ready() ) {
 			$options['error_tracking'] = array(
 				'enabled'        => true,
 				'capture_errors' => ! empty( $error_tracking['capture_errors'] ),
@@ -68,6 +68,30 @@ final class ServerClient {
 		}
 
 		return $this->initialized;
+	}
+
+	/**
+	 * Warm posthog-php's exception payload builder before enabling error tracking.
+	 *
+	 * posthog-php 4.5.0 installs its global error/exception/shutdown handlers
+	 * without loading ExceptionPayloadBuilder — that class is only autoloaded
+	 * lazily the first time a handler actually fires. If that first disk read
+	 * lands while the host filesystem is failing, the autoload throws
+	 * ("Class PostHog\ExceptionPayloadBuilder not found") and a recoverable
+	 * warning becomes an uncaught fatal that re-enters the handler. Loading the
+	 * class up front, while nothing is on fire, means the handlers never need a
+	 * fresh read at the worst possible moment. If the read fails here we simply
+	 * decline to enable error tracking rather than amplify the outage.
+	 *
+	 * @return bool Whether the payload builder is loaded and safe to enable.
+	 */
+	private function error_tracking_ready() {
+		try {
+			return class_exists( '\PostHog\ExceptionPayloadBuilder' );
+		} catch ( \Throwable $e ) {
+			$this->last_error = $e->getMessage();
+			return false;
+		}
 	}
 
 	/**
