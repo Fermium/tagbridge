@@ -44,6 +44,7 @@ final class Settings {
 				'session_recording' => false,
 				'person_profiles'   => 'identified_only',
 				'cookieless'        => false,
+				'require_consent'   => true,
 			),
 			'identity'        => array(
 				'identify_logged_in' => true,
@@ -69,6 +70,7 @@ final class Settings {
 				'coupon_applied'            => true,
 				'coupon_removed'            => true,
 				'checkout_viewed'           => true,
+				'checkout_started'          => true,
 				'order_placed'              => true,
 				'order_completed'           => true,
 				'product_purchased'         => true,
@@ -258,6 +260,7 @@ final class Settings {
 			$client['pageviews']         = ! empty( $raw_client['pageviews'] );
 			$client['session_recording'] = ! empty( $raw_client['session_recording'] );
 			$client['cookieless']        = ! empty( $raw_client['cookieless'] );
+			$client['require_consent']   = ! empty( $raw_client['require_consent'] );
 
 			$profiles                  = isset( $raw_client['person_profiles'] )
 				? sanitize_text_field( $raw_client['person_profiles'] )

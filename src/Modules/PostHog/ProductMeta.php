@@ -51,4 +51,26 @@ final class ProductMeta {
 			'attributes' => $attributes,
 		);
 	}
+
+	/**
+	 * The product's primary category name (PostHog spec "category"), or null.
+	 *
+	 * Uses the first assigned product category. Pass the parent for a variation:
+	 * variations carry no categories of their own.
+	 *
+	 * @param \WC_Product|null $product The product.
+	 * @return string|null
+	 */
+	public static function primary_category( $product ) {
+		if ( ! $product instanceof \WC_Product ) {
+			return null;
+		}
+
+		$names = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'names' ) );
+		if ( is_wp_error( $names ) || empty( $names ) ) {
+			return null;
+		}
+
+		return (string) reset( $names );
+	}
 }
