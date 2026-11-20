@@ -42,7 +42,7 @@ Three layers, with a hard line between them:
 
 ## Consent
 
-With `client.require_consent` on (default), `Frontend/Enqueue::consent_init_call()`
+With `client.require_consent` on (off by default; for sites with a Consent API banner), `Frontend/Enqueue::consent_init_call()`
 prints an init wrapper that decides in the browser, so it is safe with full-page
 caching:
 

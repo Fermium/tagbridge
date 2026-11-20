@@ -47,9 +47,9 @@ Event properties follow PostHog's ecommerce spec where they apply: product event
 
 = Cookie consent =
 
-With "Wait for cookie consent" on (the default), posthog-js starts cookieless (in-memory only, nothing stored on the device) with session replay off. Pageviews and autocapture still run. When the visitor gives "statistics" consent through the WordPress Consent API, PostHog switches to its normal cookie storage and starts session replay if you enabled it; withdrawing consent switches back. The decision is made in the browser from the Consent API cookie, so it works with full-page caching.
+"Wait for cookie consent" is off by default, so PostHog behaves as before: cookies, session replay (if enabled) and server-side events for anonymous visitors. Turn it on only once the site has a consent banner that supports the WP Consent API. With it on, posthog-js starts cookieless (in-memory only, nothing stored on the device) with session replay off. Pageviews and autocapture still run. When the visitor gives "statistics" consent through the WordPress Consent API, PostHog switches to its normal cookie storage and starts session replay if you enabled it; withdrawing consent switches back. The decision is made in the browser from the Consent API cookie, so it works with full-page caching.
 
-This needs a consent banner that supports the WP Consent API (for example Complianz, CookieYes or Cookiebot with the WP Consent API plugin). Without one, visitors are never asked, so PostHog stays cookieless. Server-side events (orders, payments, refunds) are sent from your server and set no cookies, so they are sent whatever the visitor chose.
+It needs a consent banner that supports the WP Consent API (for example Complianz, CookieYes or Cookiebot with the WP Consent API plugin). With the setting on and no such banner, visitors are never asked, so PostHog stays cookieless. Server-side events (orders, payments, refunds) are sent from your server and set no cookies, so they are sent whatever the visitor chose.
 
 = On the roadmap =
 
@@ -150,12 +150,12 @@ No analytics are sent until you enter a PostHog project token and connect. You c
 
 Server-side events include the visitor's IP address (resolved from your CDN / proxy's forwarded headers) so PostHog can determine approximate location and filter bot traffic. PostHog can be configured to discard the raw IP after geolocation.
 
-You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Tagbridge supports the WordPress Consent API: by default PostHog stays cookieless, with session replay off, until the visitor gives statistics consent (see Cookie consent above).
+You are responsible for telling your visitors what you collect and for obtaining any consent your jurisdiction requires. Tagbridge supports the WordPress Consent API: with "Wait for cookie consent" on (off by default), PostHog stays cookieless, with session replay off, until the visitor gives statistics consent (see Cookie consent above).
 
 == Changelog ==
 
 = 0.10.0 =
-* Cookie consent: WordPress Consent API support. With the new "Wait for cookie consent" setting (on by default), posthog-js runs cookieless with session replay off until the visitor gives statistics consent, then switches to cookies and starts replay; withdrawing consent switches back. The check runs in the browser, so cached pages work. Tagbridge registers with the Consent API and describes its cookie. Server-side events are unchanged and set no cookies.
+* Cookie consent: WordPress Consent API support. With the new "Wait for cookie consent" setting (off by default, so existing sites keep cookies and replay), posthog-js runs cookieless with session replay off until the visitor gives statistics consent, then switches to cookies and starts replay; withdrawing consent switches back. The check runs in the browser, so cached pages work. When it is on, Tagbridge registers with the Consent API, and the server reads the PostHog cookie only with consent. Server-side events set no cookies.
 * New checkout_started event (PostHog ecommerce spec "Checkout Started"): fires once per cart, the first time that cart reaches checkout. checkout_viewed still fires on every checkout page load. Note that checkout_started meant "order created" before 0.9.0; that event is order_placed.
 * Ecommerce-spec properties: category and price on product events, price and value on add to cart, sku/category/price on remove from cart; value, revenue, shipping, tax, discount, coupon and a products list on cart_viewed, checkout_viewed, checkout_started, order_placed and order_completed; category, price, value and coupon on product_purchased; coupon on coupon_applied.
 * PHP error tracking no longer sends benign errors: notices and deprecations are dropped, and so is the parse_str() input-nesting warning that bots trigger. They still go to the PHP error log. Both lists are filterable.
@@ -228,7 +228,7 @@ You are responsible for telling your visitors what you collect and for obtaining
 == Upgrade Notice ==
 
 = 0.10.0 =
-PostHog now waits for cookie consent through the WordPress Consent API: until a visitor consents it runs cookieless with session replay off. Without a Consent API banner, PostHog stays cookieless. Adds checkout_started and ecommerce-spec properties, and stops sending PHP notices to error tracking.
+Adds optional WordPress Consent API support ("Wait for cookie consent", off by default, so tracking is unchanged on upgrade). Adds checkout_started and ecommerce-spec properties, and stops sending PHP notices to error tracking.
 
 = 0.9.5 =
 Server-side events now respect your person-profile setting (no more phantom people from anonymous events when set to identified-only), and logout resets the browser identity so shared-device visitors are not tracked as the previous user.

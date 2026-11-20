@@ -18,6 +18,12 @@ final class ConsentTest extends TestCase {
 		return Consent::cookie_read_allowed( $client, $cookies, $has_consent, self::COOKIE, 'statistics' );
 	}
 
+	public function test_consent_gating_is_off_by_default() {
+		$defaults = \Tagbridge\Modules\PostHog\Settings::defaults();
+		$this->assertFalse( $defaults['client']['require_consent'] );
+		$this->assertFalse( Consent::required( $defaults['client'] ), 'Default install keeps cookies, replay and cookie-stitched server events.' );
+	}
+
 	public function test_reads_cookie_when_consent_not_required() {
 		$this->assertTrue( $this->allowed( array( 'require_consent' => false ), array() ) );
 	}

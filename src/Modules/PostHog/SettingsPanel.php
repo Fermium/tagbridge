@@ -219,7 +219,7 @@ final class SettingsPanel {
 						'client',
 						'require_consent',
 						__( 'Wait for cookie consent', 'tagbridge' ),
-						__( 'Run cookieless with session replay off until the visitor gives statistics consent through the WP Consent API (your cookie banner). Cookies and replay start after consent. Server-side order events are unaffected.', 'tagbridge' ),
+						__( 'Off by default. When on: run cookieless with session replay off until the visitor gives statistics consent through the WP Consent API, so it needs a Consent API cookie banner. Cookies and replay start after consent. Server-side order events are unaffected.', 'tagbridge' ),
 						! empty( $client['require_consent'] )
 					);
 					$this->row(

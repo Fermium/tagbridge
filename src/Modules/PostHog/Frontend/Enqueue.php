@@ -43,9 +43,15 @@ final class Enqueue {
 		// Flag a browser reset() on the next page load after the user logs out.
 		add_action( 'wp_logout', array( $this, 'flag_reset_on_logout' ) );
 
-		// WP Consent API: declare that Tagbridge waits for consent, and describe
-		// the PostHog cookie for consent banners that list cookies.
-		add_filter( 'wp_consent_api_registered_' . plugin_basename( TAGBRIDGE_FILE ), '__return_true' );
+		// WP Consent API: declare that Tagbridge waits for consent (only when the
+		// "Wait for cookie consent" setting is on), and describe the PostHog
+		// cookie for consent banners that list cookies.
+		add_filter(
+			'wp_consent_api_registered_' . plugin_basename( TAGBRIDGE_FILE ),
+			static function () {
+				return Consent::required( Settings::client() );
+			}
+		);
 		add_action( 'init', array( $this, 'register_cookie_info' ) );
 	}
 

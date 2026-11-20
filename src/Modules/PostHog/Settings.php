@@ -44,7 +44,7 @@ final class Settings {
 				'session_recording' => false,
 				'person_profiles'   => 'identified_only',
 				'cookieless'        => false,
-				'require_consent'   => true,
+				'require_consent'   => false,
 			),
 			'identity'        => array(
 				'identify_logged_in' => true,
