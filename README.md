@@ -40,6 +40,29 @@ Three layers, with a hard line between them:
   not linger in the browser.
 - The full event and property list is in `readme.txt`.
 
+## Consent
+
+With `client.require_consent` on (off by default; for sites with a Consent API banner), `Frontend/Enqueue::consent_init_call()`
+prints an init wrapper that decides in the browser, so it is safe with full-page
+caching:
+
+- No `<prefix>_statistics=allow` cookie from the WP Consent API: `posthog.init`
+  with `persistence: 'memory'` and `disable_session_recording: true`.
+- Cookie present: the normal config, so a returning visitor keeps their stored id.
+- `wp_listen_for_consent_change` (and `wp_has_consent()` once the page has loaded)
+  switch between the two with `set_config({persistence})` and
+  `start/stopSessionRecording()`.
+
+Server-side events never set cookies. Without consent there is no posthog cookie,
+so they resolve identity from the logged-in user or the WooCommerce session.
+
+## PHP error tracking filter
+
+posthog-php has no hook to drop errors, so `Core/Events/ErrorFilter` installs
+itself in front of its error handler. Notices, deprecations and known-benign
+warnings (`tagbridge_posthog_ignored_php_errors`) return `false`, which hands them
+to PHP's normal logging; everything else goes on to PostHog.
+
 ## Server-side request context
 
 Server-side events are stamped with the visitor's user agent (`$raw_user_agent`)

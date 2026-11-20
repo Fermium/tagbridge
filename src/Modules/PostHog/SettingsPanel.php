@@ -216,6 +216,13 @@ final class SettingsPanel {
 						! empty( $client['cookieless'] )
 					);
 					$this->row(
+						'client',
+						'require_consent',
+						__( 'Wait for cookie consent', 'tagbridge' ),
+						__( 'Off by default. When on: run cookieless with session replay off until the visitor gives statistics consent through the WP Consent API, so it needs a Consent API cookie banner. Cookies and replay start after consent. Server-side order events are unaffected.', 'tagbridge' ),
+						! empty( $client['require_consent'] )
+					);
+					$this->row(
 						'error_tracking',
 						'javascript',
 						__( 'Track JavaScript errors', 'tagbridge' ),
@@ -395,6 +402,13 @@ final class SettingsPanel {
 							__( 'Checkout viewed', 'tagbridge' ),
 							__( 'WooCommerce: the checkout page was loaded.', 'tagbridge' ),
 							! empty( $server['checkout_viewed'] )
+						);
+						$this->row(
+							'server_events',
+							'checkout_started',
+							__( 'Checkout started', 'tagbridge' ),
+							__( 'WooCommerce: a shopper began checkout (first checkout view for the current cart; PostHog ecommerce spec).', 'tagbridge' ),
+							! empty( $server['checkout_started'] )
 						);
 						$this->row(
 							'server_events',

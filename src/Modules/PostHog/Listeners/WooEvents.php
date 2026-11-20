@@ -37,6 +37,13 @@ final class WooEvents {
 	const ORDER_PURCHASE_SENT_META = '_tagbridge_purchase_sent';
 
 	/**
+	 * WooCommerce session key holding the cart hash checkout_started last fired for.
+	 *
+	 * @var string
+	 */
+	const SESSION_CHECKOUT_STARTED = 'tagbridge_checkout_started';
+
+	/**
 	 * The event dispatcher.
 	 *
 	 * @var Dispatcher
@@ -118,6 +125,7 @@ final class WooEvents {
 				'product_id' => $product->get_id(),
 				'name'       => $product->get_name(),
 				'sku'        => $product->get_sku(),
+				'category'   => ProductMeta::primary_category( $product ),
 				'price'      => (float) $product->get_price(),
 				'currency'   => get_woocommerce_currency(),
 			) + ProductMeta::collect( $product )
@@ -154,8 +162,15 @@ final class WooEvents {
 			$props['sku'] = $product->get_sku();
 		}
 
+		$priced = $variation_id ? wc_get_product( $variation_id ) : $product;
+		if ( $priced ) {
+			$props['price'] = (float) $priced->get_price();
+			$props['value'] = round( (float) $priced->get_price() * (int) $quantity, 2 );
+		}
+
 		if ( $product ) {
-			$props += ProductMeta::collect( $product );
+			$props['category'] = ProductMeta::primary_category( $product );
+			$props            += ProductMeta::collect( $product );
 		}
 
 		$this->dispatcher->capture( 'product_added_to_cart', $this->visitor_distinct_id(), $props );
@@ -211,12 +226,7 @@ final class WooEvents {
 		$this->dispatcher->capture(
 			'order_placed',
 			$distinct_id,
-			array(
-				'order_id'   => $order->get_id(),
-				'value'      => (float) $order->get_total(),
-				'currency'   => $order->get_currency(),
-				'item_count' => $order->get_item_count(),
-			)
+			$this->order_props( $order )
 		);
 	}
 
@@ -244,12 +254,7 @@ final class WooEvents {
 		$this->dispatcher->capture(
 			'order_completed',
 			$distinct_id,
-			array(
-				'order_id'   => $order->get_id(),
-				'value'      => (float) $order->get_total(),
-				'currency'   => $order->get_currency(),
-				'item_count' => $order->get_item_count(),
-			)
+			$this->order_props( $order )
 		);
 
 		// One product_purchased per line item, so sales break down by SKU, variant,
@@ -270,7 +275,11 @@ final class WooEvents {
 				'name'         => $item->get_name(),
 				'sku'          => $product ? $product->get_sku() : null,
 				'quantity'     => (int) $item->get_quantity(),
+				'category'     => ProductMeta::primary_category( $parent ),
+				'price'        => $item->get_quantity() ? round( (float) $item->get_subtotal() / (int) $item->get_quantity(), 2 ) : null,
 				'line_total'   => (float) $item->get_total(),
+				'value'        => (float) $item->get_total(),
+				'coupon'       => $this->order_coupon( $order ),
 				'currency'     => $order->get_currency(),
 				'variant'      => $is_variant ? $this->readable_variation( $product->get_variation_attributes() ) : null,
 			) + ProductMeta::collect( $parent );
@@ -349,11 +358,7 @@ final class WooEvents {
 		$this->dispatcher->capture(
 			'cart_viewed',
 			$this->visitor_distinct_id(),
-			array(
-				'item_count' => $cart ? (int) $cart->get_cart_contents_count() : null,
-				'value'      => $cart ? (float) $cart->get_cart_contents_total() : null,
-				'currency'   => get_woocommerce_currency(),
-			)
+			$this->cart_props( $cart )
 		);
 	}
 
@@ -377,7 +382,10 @@ final class WooEvents {
 			$this->visitor_distinct_id(),
 			array(
 				'product_id' => $product_id,
+				'sku'        => $product ? $product->get_sku() : null,
 				'name'       => $product ? $product->get_name() : '',
+				'category'   => ProductMeta::primary_category( $product ),
+				'price'      => $product ? (float) $product->get_price() : null,
 				'quantity'   => isset( $removed['quantity'] ) ? (int) $removed['quantity'] : null,
 				'currency'   => get_woocommerce_currency(),
 			)
@@ -398,6 +406,7 @@ final class WooEvents {
 			$this->visitor_distinct_id(),
 			array(
 				'coupon_code'    => (string) $coupon_code,
+				'coupon'         => (string) $coupon_code,
 				'cart_value'     => $cart ? (float) $cart->get_cart_contents_total() : null,
 				'discount_total' => $cart ? (float) $cart->get_discount_total() : null,
 				'currency'       => get_woocommerce_currency(),
@@ -521,17 +530,149 @@ final class WooEvents {
 			return;
 		}
 
-		$cart = function_exists( 'WC' ) ? WC()->cart : null;
+		$cart        = function_exists( 'WC' ) ? WC()->cart : null;
+		$distinct_id = $this->visitor_distinct_id();
+		$props       = $this->cart_props( $cart );
 
-		$this->dispatcher->capture(
-			'checkout_viewed',
-			$this->visitor_distinct_id(),
-			array(
-				'item_count' => $cart ? (int) $cart->get_cart_contents_count() : null,
-				'value'      => $cart ? (float) $cart->get_cart_contents_total() : null,
+		// Every checkout page load, reloads and step changes included.
+		$this->dispatcher->capture( 'checkout_viewed', $distinct_id, $props );
+
+		// Once per cart: the shopper began checkout (PostHog spec "Checkout Started").
+		if ( $this->is_new_checkout( $cart ) ) {
+			$this->dispatcher->capture( 'checkout_started', $distinct_id, $props );
+		}
+	}
+
+	/**
+	 * Whether this checkout view starts a new checkout: the first view for the
+	 * current cart contents in this WooCommerce session. Reloads and returning
+	 * to checkout with the same cart do not count again; changing the cart does.
+	 * Marks the cart as started as a side effect.
+	 *
+	 * @param \WC_Cart|null $cart The cart.
+	 * @return bool
+	 */
+	private function is_new_checkout( $cart ) {
+		if ( ! $cart instanceof \WC_Cart || $cart->is_empty() ) {
+			return false;
+		}
+
+		$session = function_exists( 'WC' ) ? WC()->session : null;
+		if ( ! $session || ! method_exists( $session, 'get' ) ) {
+			// No session to remember it in: count every view rather than none.
+			return true;
+		}
+
+		$hash = (string) $cart->get_cart_hash();
+		if ( (string) $session->get( self::SESSION_CHECKOUT_STARTED ) === $hash ) {
+			return false;
+		}
+
+		$session->set( self::SESSION_CHECKOUT_STARTED, $hash );
+		return true;
+	}
+
+	/**
+	 * Cart properties shared by cart_viewed, checkout_viewed and checkout_started,
+	 * named as in PostHog's ecommerce spec (value, coupon, shipping, tax,
+	 * discount, products).
+	 *
+	 * @param \WC_Cart|null $cart The cart.
+	 * @return array<string,mixed>
+	 */
+	private function cart_props( $cart ) {
+		if ( ! $cart instanceof \WC_Cart ) {
+			return array(
+				'item_count' => null,
+				'value'      => null,
 				'currency'   => get_woocommerce_currency(),
-			)
+			);
+		}
+
+		$products = array();
+		foreach ( $cart->get_cart() as $item ) {
+			$product = isset( $item['data'] ) && $item['data'] instanceof \WC_Product ? $item['data'] : null;
+			if ( ! $product ) {
+				continue;
+			}
+			$parent     = $product->is_type( 'variation' ) ? wc_get_product( $product->get_parent_id() ) : $product;
+			$products[] = array(
+				'product_id'   => isset( $item['product_id'] ) ? (int) $item['product_id'] : $product->get_id(),
+				'variation_id' => isset( $item['variation_id'] ) ? (int) $item['variation_id'] : 0,
+				'sku'          => $product->get_sku(),
+				'name'         => $product->get_name(),
+				'category'     => ProductMeta::primary_category( $parent ),
+				'price'        => (float) $product->get_price(),
+				'quantity'     => isset( $item['quantity'] ) ? (int) $item['quantity'] : 1,
+			);
+		}
+
+		$coupons = $cart->get_applied_coupons();
+
+		return array(
+			'item_count' => (int) $cart->get_cart_contents_count(),
+			'value'      => (float) $cart->get_cart_contents_total(),
+			'revenue'    => (float) $cart->get_total( 'edit' ),
+			'shipping'   => (float) $cart->get_shipping_total(),
+			'tax'        => (float) $cart->get_total_tax(),
+			'discount'   => (float) $cart->get_discount_total(),
+			'coupon'     => $coupons ? implode( ',', $coupons ) : null,
+			'currency'   => get_woocommerce_currency(),
+			'products'   => $products,
 		);
+	}
+
+	/**
+	 * Order properties shared by order_placed and order_completed, named as in
+	 * PostHog's ecommerce spec. value stays the order total (gross) as before,
+	 * so existing revenue insights keep their meaning.
+	 *
+	 * @param \WC_Order $order The order.
+	 * @return array<string,mixed>
+	 */
+	private function order_props( \WC_Order $order ) {
+		$products = array();
+		foreach ( $order->get_items() as $item ) {
+			if ( ! $item instanceof \WC_Order_Item_Product ) {
+				continue;
+			}
+			$product    = $item->get_product();
+			$parent     = $product && $product->is_type( 'variation' ) ? wc_get_product( $product->get_parent_id() ) : $product;
+			$quantity   = (int) $item->get_quantity();
+			$products[] = array(
+				'product_id'   => (int) $item->get_product_id(),
+				'variation_id' => (int) $item->get_variation_id(),
+				'sku'          => $product ? $product->get_sku() : null,
+				'name'         => $item->get_name(),
+				'category'     => ProductMeta::primary_category( $parent ),
+				'price'        => $quantity ? round( (float) $item->get_subtotal() / $quantity, 2 ) : null,
+				'quantity'     => $quantity,
+			);
+		}
+
+		return array(
+			'order_id'   => $order->get_id(),
+			'value'      => (float) $order->get_total(),
+			'revenue'    => (float) $order->get_total(),
+			'shipping'   => (float) $order->get_shipping_total(),
+			'tax'        => (float) $order->get_total_tax(),
+			'discount'   => (float) $order->get_discount_total(),
+			'coupon'     => $this->order_coupon( $order ),
+			'currency'   => $order->get_currency(),
+			'item_count' => $order->get_item_count(),
+			'products'   => $products,
+		);
+	}
+
+	/**
+	 * The coupon codes used on an order, comma-separated, or null.
+	 *
+	 * @param \WC_Order $order The order.
+	 * @return string|null
+	 */
+	private function order_coupon( \WC_Order $order ) {
+		$codes = $order->get_coupon_codes();
+		return $codes ? implode( ',', $codes ) : null;
 	}
 
 	/**

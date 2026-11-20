@@ -11,6 +11,7 @@
 
 namespace Tagbridge\Modules\PostHog\Events;
 
+use Tagbridge\Core\Events\ErrorFilter;
 use Tagbridge\Core\Events\Schema;
 use Tagbridge\Core\Events\ServerClient;
 use Tagbridge\Core\Identity\Resolver;
@@ -73,10 +74,42 @@ final class Dispatcher {
 
 		$this->client = $client;
 
+		if ( ! empty( $error_opts ) ) {
+			$this->install_error_filter();
+		}
+
 		// Deliver queued events at the end of the request without blocking it.
 		add_action( 'shutdown', array( $this, 'flush' ), 100 );
 
 		return $this->client;
+	}
+
+	/**
+	 * Put the benign-error filter in front of posthog-php's error handler, so PHP
+	 * notices, deprecations and known-harmless warnings stay in the PHP error log
+	 * instead of becoming PostHog `$exception` events.
+	 *
+	 * @return void
+	 */
+	private function install_error_filter() {
+		/**
+		 * Filter the PHP error severities kept out of PostHog error tracking.
+		 *
+		 * @param int $levels Bitmask of E_* constants. Default: notices and deprecations.
+		 */
+		$levels = (int) apply_filters( 'tagbridge_posthog_ignored_php_error_levels', ErrorFilter::DEFAULT_IGNORED_LEVELS );
+
+		/**
+		 * Filter the PHP error message fragments kept out of PostHog error tracking.
+		 *
+		 * Add a fragment of a known-harmless warning that comes from code you do
+		 * not control. Matching is case-sensitive.
+		 *
+		 * @param string[] $messages Message fragments.
+		 */
+		$messages = (array) apply_filters( 'tagbridge_posthog_ignored_php_errors', ErrorFilter::DEFAULT_IGNORED_MESSAGES );
+
+		( new ErrorFilter( $levels, $messages ) )->install();
 	}
 
 	/**
@@ -227,7 +260,7 @@ final class Dispatcher {
 
 		// Cloudflare sets the original visitor IP here; no other front end does.
 		if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
-			$cf = trim( (string) wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
+			$cf = trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) );
 			if ( false !== filter_var( $cf, FILTER_VALIDATE_IP ) ) {
 				return $cf;
 			}
@@ -235,14 +268,14 @@ final class Dispatcher {
 
 		// nginx / load balancer / CDN single client-IP header.
 		if ( ! empty( $_SERVER['HTTP_X_REAL_IP'] ) ) {
-			$real = trim( (string) wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
+			$real = trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) ) );
 			if ( false !== filter_var( $real, FILTER_VALIDATE_IP ) ) {
 				return $real;
 			}
 		}
 
 		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-			$parts = array_map( 'trim', explode( ',', (string) wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+			$parts = array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) ) );
 			$count = count( $parts );
 			// Two or more hops: a load balancer appended its own IP last, so the
 			// visitor is the second-to-last entry. A single hop is the visitor.
@@ -253,7 +286,7 @@ final class Dispatcher {
 		}
 
 		if ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
-			$remote = trim( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+			$remote = trim( sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) );
 			if ( false !== filter_var( $remote, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
 				return $remote;
 			}

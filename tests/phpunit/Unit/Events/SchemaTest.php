@@ -21,6 +21,7 @@ final class SchemaTest extends TestCase {
 		$this->assertSame( 'product_viewed', Schema::PRODUCT_VIEWED );
 		$this->assertSame( 'product_added_to_cart', Schema::PRODUCT_ADDED_TO_CART );
 		$this->assertSame( 'checkout_viewed', Schema::CHECKOUT_VIEWED );
+		$this->assertSame( 'checkout_started', Schema::CHECKOUT_STARTED );
 		$this->assertSame( 'order_placed', Schema::ORDER_PLACED );
 		$this->assertSame( 'order_completed', Schema::ORDER_COMPLETED );
 		$this->assertSame( 'product_purchased', Schema::PRODUCT_PURCHASED );
@@ -42,7 +43,7 @@ final class SchemaTest extends TestCase {
 			array_merge( Schema::core_events(), Schema::woo_events() ),
 			$all
 		);
-		$this->assertCount( 19, $all );
+		$this->assertCount( 20, $all );
 	}
 
 	public function test_keys_map_to_their_event_name() {
@@ -55,6 +56,7 @@ final class SchemaTest extends TestCase {
 		$this->assertTrue( Schema::is_woo( 'order_completed' ) );
 		$this->assertTrue( Schema::is_woo( 'product_viewed' ) );
 		$this->assertTrue( Schema::is_woo( 'checkout_viewed' ) );
+		$this->assertTrue( Schema::is_woo( 'checkout_started' ) );
 		$this->assertTrue( Schema::is_woo( 'product_review_submitted' ) );
 		$this->assertFalse( Schema::is_woo( 'user_logged_in' ) );
 		$this->assertFalse( Schema::is_woo( 'user_logged_out' ) );

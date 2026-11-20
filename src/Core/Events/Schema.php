@@ -136,6 +136,15 @@ final class Schema {
 	const CHECKOUT_VIEWED = 'checkout_viewed';
 
 	/**
+	 * A visitor began checkout: the first checkout view for the current cart.
+	 * Matches "Checkout Started" in PostHog's ecommerce spec. (Before 0.9.0 this
+	 * name meant "order created"; that event is now order_placed.)
+	 *
+	 * @var string
+	 */
+	const CHECKOUT_STARTED = 'checkout_started';
+
+	/**
 	 * A visitor submitted a WooCommerce product review.
 	 *
 	 * @var string
@@ -178,6 +187,7 @@ final class Schema {
 			'coupon_applied'            => self::COUPON_APPLIED,
 			'coupon_removed'            => self::COUPON_REMOVED,
 			'checkout_viewed'           => self::CHECKOUT_VIEWED,
+			'checkout_started'          => self::CHECKOUT_STARTED,
 			'order_placed'              => self::ORDER_PLACED,
 			'order_completed'           => self::ORDER_COMPLETED,
 			'product_purchased'         => self::PRODUCT_PURCHASED,
