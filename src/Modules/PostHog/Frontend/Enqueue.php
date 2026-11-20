@@ -11,6 +11,7 @@
 
 namespace Tagbridge\Modules\PostHog\Frontend;
 
+use Tagbridge\Modules\PostHog\Consent;
 use Tagbridge\Modules\PostHog\Identity;
 use Tagbridge\Modules\PostHog\ProductMeta;
 use Tagbridge\Modules\PostHog\Settings;
@@ -61,26 +62,13 @@ final class Enqueue {
 		wp_add_cookie_info(
 			'ph_' . Settings::project_api_key() . '_posthog',
 			'PostHog',
-			self::consent_category(),
+			Consent::category(),
 			__( '1 year', 'tagbridge' ),
 			__( 'Remembers an anonymous visitor ID and session for site analytics and session replay.', 'tagbridge' ),
 			__( 'Anonymous ID, session ID', 'tagbridge' )
 		);
 	}
 
-	/**
-	 * The WP Consent API category that unlocks PostHog cookies and replay.
-	 *
-	 * @return string
-	 */
-	private static function consent_category() {
-		/**
-		 * Filter the WP Consent API category PostHog waits for.
-		 *
-		 * @param string $category One of the WP Consent API categories. Default 'statistics'.
-		 */
-		return (string) apply_filters( 'tagbridge_posthog_consent_category', 'statistics' );
-	}
 
 	/**
 	 * Enqueue the variant-tracking script on single product pages.
@@ -354,8 +342,7 @@ final class Enqueue {
 	 * @return bool
 	 */
 	private function consent_required() {
-		$client = Settings::client();
-		return ! empty( $client['require_consent'] ) && empty( $client['cookieless'] );
+		return Consent::required( Settings::client() );
 	}
 
 	/**
@@ -379,12 +366,9 @@ final class Enqueue {
 	 * @return string
 	 */
 	private function consent_init_call( $key, array $config ) {
-		/** This filter is documented in the WP Consent API (wp-consent-api). */
-		$prefix = (string) apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- The WP Consent API's own hook.
-
 		$consent = array(
-			'category'    => self::consent_category(),
-			'cookie'      => $prefix . '_' . self::consent_category(),
+			'category'    => Consent::category(),
+			'cookie'      => Consent::cookie_name(),
 			'persistence' => isset( $config['persistence'] ) ? $config['persistence'] : 'localStorage+cookie',
 			'replay'      => empty( $config['disable_session_recording'] ),
 		);

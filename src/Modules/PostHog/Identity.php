@@ -21,13 +21,14 @@ use Tagbridge\Core\Identity\Resolver;
 final class Identity {
 
 	/**
-	 * The distinct id stored by posthog-js in its cookie, if present.
+	 * The distinct id stored by posthog-js in its cookie, if present and the
+	 * visitor has consented to it (see Consent::may_read_posthog_cookie()).
 	 *
 	 * @return string|null
 	 */
 	public static function cookie_distinct_id() {
 		$key = Settings::project_api_key();
-		if ( '' === $key ) {
+		if ( '' === $key || ! Consent::may_read_posthog_cookie() ) {
 			return null;
 		}
 
@@ -59,7 +60,7 @@ final class Identity {
 	 */
 	public static function cookie_session_id() {
 		$key = Settings::project_api_key();
-		if ( '' === $key ) {
+		if ( '' === $key || ! Consent::may_read_posthog_cookie() ) {
 			return null;
 		}
 
